@@ -66,7 +66,7 @@ Converting to MP4
 -----------------
 
 This is done through ffmpeg-python, with parameters optimized for better
-cross-device compatibility.
+cross-device compatibility::
 
   $ ./bin/tomp4.py
 
