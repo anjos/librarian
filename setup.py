@@ -25,6 +25,9 @@ setup(
       'subliminal',
       'mutagen',
       'qtfaststart',
+      'tmdbsimple',
+      'tvdbapi_client',
+      'ffmpeg_python',
       ],
 
     entry_points = {
