@@ -80,6 +80,9 @@ def main(user_input=None):
     from ..utils import guess, record_from_guess
     logger.debug("Trying to guess name from filename")
     info = guess(args['<file>'], fullpath=not args['--basename-only'])
+    if info['type'] == 'episode':
+      raise RuntimeError('File %s was guessed as a TV show episode - " \
+          "you may pass the --query="title" with the right title to fix it')
     movie = record_from_guess(info)
 
   else:
