@@ -37,12 +37,31 @@ INI-style syntax::
   [apis]
   tmdbkey = 1234567890abcdef123456
   tvdbkey = 1234567890abcdef123456
+  tvdbuser = username
+  tvdbpass = yourpass
 
 
 Usage
 =====
 
 There are various utilities you may use for organizing a video library.
+
+
+Downloading Subtitles
+---------------------
+
+To download subtitles for movies and TV shows, we use `subliminal`_::
+
+  $ ./bin/subliminal download -l en titled-movie-year.mp4
+
+
+Converting to MP4
+-----------------
+
+This is done through ffmpeg, with parameters optimized for better cross-device
+compatibility.
+
+  $ ./bin/tomp4.py
 
 
 Re-tagging
@@ -68,14 +87,6 @@ that will skip searching altogether and proceed into re-tagging::
 
 Once information is retrieved from IMDB (or TMDB), it is recorded on the MP4
 file using mutagen_ and qtfaststart_.
-
-
-Downloading Subtitles
----------------------
-
-To download subtitles for movies and TV shows, we use `subliminal`_::
-
-  $ ./bin/subliminal download -l en titled-movie-year.mp4
 
 
 .. Place your references after this line
