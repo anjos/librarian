@@ -1,0 +1,54 @@
+{% set name = "pysrt" %}
+{% set version = "1.1.1" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  md5: 6f3260129560912dd1cd56338299cdaf
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+  entry_points:
+    - srt = pysrt.commands:main
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - chardet
+
+  run:
+    - python
+    - chardet
+
+test:
+  requires:
+    - nose
+    - coverage
+
+  imports:
+    - pysrt
+
+  source_files:
+    - tests/*
+    - tests/static/*
+
+  commands:
+    - srt --help
+    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
+
+about:
+  home: https://github.com/byroot/pysrt
+  license: GNU General Public License (GPL)
+  summary: 'SubRip (.srt) subtitle parser and writer'
+  license_family: LGPL
+
+extra:
+  recipe-maintainers:
+    - anjos

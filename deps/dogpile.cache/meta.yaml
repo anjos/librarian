@@ -1,0 +1,61 @@
+{% set name = "dogpile.cache" %}
+{% set version = "0.6.4" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  md5: 66e0a6cae6c08cb1ea25f89d0eadfeb0
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+    - setuptools
+
+test:
+  requires:
+    - mako
+    - mock
+    - pytest
+    - pytest-cov
+    - coverage
+    - nose
+
+  imports:
+    - dogpile
+    - dogpile.cache
+    - dogpile.cache.backends
+    - dogpile.cache.plugins
+    - dogpile.util
+
+  source_files:
+    - tests/*.py
+    - tests/cache/*.py
+    - tests/cache/plugins/*.py
+    - tests/util/*.py
+
+  commands:
+    # update runtime dependencies to test memcached and redis backends
+    - nosetests -sv --with-coverage --cover-package={{ name }} --exclude=".*test_memcached_backend.*" --exclude=".*test_redis_backend.*" tests {{ name }}
+
+about:
+  home: http://bitbucket.org/zzzeek/dogpile.cache
+  license: BSD License
+  summary: 'A caching front-end based on the Dogpile lock.'
+  license_family: BSD
+
+extra:
+  recipe-maintainers:
+    - anjos

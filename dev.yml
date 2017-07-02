@@ -26,6 +26,9 @@ dependencies:
 - pytz>=2012c
 - chardet>=2.3.0
 - stevedore>=1.0.0
-
+- rarfile>=2.7
+- pysrt>=1.0.1
+- enzyme>=0.4.1
+- dogpile.cache>=0.6.0
 - pip:
   - subliminal

@@ -1,0 +1,49 @@
+{% set name = "rarfile" %}
+{% set version = "3.0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  git_url: https://github.com/markokr/rarfile.git
+  git_rev: rarfile_{{ version.replace('.','_') }}
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+
+test:
+  requires:
+    - nose
+    - coverage
+
+  imports:
+    - {{ name }}
+
+  source_files:
+    - test/*
+    - test/files/*
+
+  #commands:
+    # - nosetests -sv --with-coverage --cover-package={{ name }} test {{ name }}
+
+about:
+  home: https://github.com/markokr/rarfile
+  license: ISC License (ISCL)
+  summary: 'RAR archive reader for Python'
+  license_family: OTHER
+
+extra:
+  recipe-maintainers:
+    - anjos

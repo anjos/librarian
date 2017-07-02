@@ -1,11 +1,12 @@
+{% set name = "subliminal" %}
 {% set version = "2.0.5" %}
 
 package:
-  name: subliminal
+  name: {{ name }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/s/subliminal/subliminal-{{ version }}.tar.gz
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
   md5: 77064c09b82609cdeac75df1cd9a55b2
 
 build:
@@ -32,18 +33,17 @@ requirements:
     - pytz>=2012c
     - chardet>=2.3.0
     - stevedore>=1.0.0
-
+    - rarfile>=2.7
+    - pysrt>=1.0.1
     - enzyme>=0.4.1
     - dogpile.cache>=0.6.0
-    - pysrt>=1.0.1
-    - rarfile>=2.7
 
 test:
   requires:
     - nose
 
   imports:
-    - subliminal
+    - {{ name }}
 
   commands:
     - nosetests

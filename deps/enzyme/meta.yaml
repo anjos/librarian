@@ -1,0 +1,50 @@
+{% set name = "enzyme" %}
+{% set version = "0.4.1" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  md5: 1656e262295df6580db5498cf136d23a
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+
+test:
+  requires:
+    - nose
+    - coverage
+    - pyyaml
+    - requests
+
+  imports:
+    - enzyme
+    - enzyme.parsers
+    - enzyme.parsers.ebml
+    - enzyme.tests
+
+  commands:
+    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
+
+about:
+  home: https://github.com/Diaoul/enzyme
+  license: Apache Software License
+  summary: 'Python video metadata parser'
+  license_family: APACHE
+
+extra:
+  recipe-maintainers:
+    - anjos
