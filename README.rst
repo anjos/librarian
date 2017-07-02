@@ -1,9 +1,9 @@
-------------------------------------
- Utilities for Re-tagging MP4 files
-------------------------------------
+----------------------------------------
+ Utilities for Organizing MP4 Libraries
+----------------------------------------
 
-A bunch of utilities to organize my movies and TV shows. Bits, pieces and ideas
-were taken from `Sickbeard's mp4 automator`_.
+A bunch of utilities to organize libraries of movies and TV shows. Some bits,
+pieces and ideas were taken from `Sickbeard's mp4 automator`_.
 
 
 Install
@@ -71,10 +71,10 @@ cross-device compatibility.
   $ ./bin/tomp4.py
 
 
-Re-tagging
-----------
+Re-tagging a Movie
+------------------
 
-To re-tag an MP4 file, do the following::
+To re-tag an MP4 file with a movie, do the following::
 
   $ ./bin/retag_movie.py <file>.mp4
 
@@ -82,18 +82,33 @@ This command will attempt to guess the movie title (and date) from the input
 file name using `guessit`_. The program will then probe the TMDB database using
 `tmdbsimple`_.
 
-You can specify the movie title and year to optimize the search and avoid
-guessing::
+You can specify a friendly search string (e.g. movie title and year) to
+optimize the search and avoid guessing::
 
-  $ ./bin/retag.py <file>.mp4 --title="<movie title> (<year>)"
+  $ ./bin/retag_movie.py <file>.mp4 --query="<query-matching-movie>"
 
-Optionally, you may also specify the IMDB identifier (starting with ``tt``) and
-that will skip searching altogether and proceed into re-tagging::
+Once information is retrieved from TMDB, it is recorded on the MP4 file using
+mutagen_.
 
-  $ ./bin/retag.py <file>.mp4 --imdbid="tt<id>"
 
-Once information is retrieved from IMDB (or TMDB), it is recorded on the MP4
-file using mutagen_ and qtfaststart_.
+Re-tagging a TV show Episode
+----------------------------
+
+To re-tag an MP4 file with a movie, do the following::
+
+  $ ./bin/retag_tvshow.py <file>.mp4
+
+This command will attempt to guess the TV show title season and episode from
+the input file name using `guessit`_. The program will then probe the TVDB
+database using `tvdbapi-client`_.
+
+You can specify a friendly search string (e.g. series name, season and episode
+number ) to optimize the search and avoid guessing::
+
+  $ ./bin/retag.py <file>.mp4 --query="<query-matching-movie>"
+
+Once information is retrieved from TVDB, it is recorded on the MP4 file using
+mutagen_, similar to movies.
 
 
 Development
@@ -105,6 +120,7 @@ Build
 
 To build the project and make it ready to run, do::
 
+  $ conda env create -f dev.yml
   $ source activate librarian-dev
   $ buildout
 
@@ -129,7 +145,7 @@ prepare::
 
 Then, you can build dependencies one by one, in order::
 
-  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/ffmpeg-python deps/mutagen deps/qtfaststart deps/args deps/clint deps/pbr deps/requests-toolbelt deps/tqdm deps/twine deps/tvdbapi-client; do conda build $p; done
+  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/ffmpeg-python deps/mutagen deps/qtfaststart deps/args deps/clint deps/pbr deps/requests-toolbelt deps/tqdm deps/twine deps/tvdbapi-client deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache; do conda build $p; done
   $ TMDB_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx conda build deps/tmdbsimple
 
 To build some of the packages, you'll need to setup environment variables with
@@ -148,12 +164,9 @@ everytime), do::
 
   $ anaconda login
   # enter credentials
-  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,ffmpeg-python,mutagen,qtfaststart,args,clint,pbr,requests-toolbelt,tqdm,twine,tmdbsimple,tvdbapi-client,stevedore}-*.tar.bz2
+  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,ffmpeg-python,mutagen,qtfaststart,args,clint,pbr,requests-toolbelt,tqdm,twine,tmdbsimple,tvdbapi-client,stevedore,rarfile,pysrt,enzyme,dogpile.cache}-*.tar.bz2
 
 
-.. Place your references after this line
-.. _conda: http://conda.pydata.org/miniconda.html
-.. _mediainfo: https://mediaarea.net/en/MediaInfo
 .. Place your references after this line
 .. _conda: http://conda.pydata.org/miniconda.html
 .. _guessit: https://pypi.python.org/pypi/guessit
@@ -161,5 +174,6 @@ everytime), do::
 .. _tmdbsimple: https://pypi.python.org/pypi/tmdbsimple
 .. _mutagen: https://mutagen.readthedocs.io/en/latest/
 .. _qtfaststart: https://github.com/danielgtaylor/qtfaststart
+.. _tvdbapi-client: https://github.com/shad7/tvdbapi_client
 .. _sickbeard's mp4 automator: https://github.com/mdhiggins/sickbeard_mp4_automator
 .. _ffmpeg-python: https://github.com/kkroening/ffmpeg-python
