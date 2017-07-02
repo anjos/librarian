@@ -1,0 +1,55 @@
+{% set name = "pbr" %}
+{% set version = "3.1.1" %}
+{% set bundle = "tar.gz" %}
+{% set hash_type = "sha256" %}
+{% set hash = "05f61c71aaefc02d8e37c0a3eeb9815ff526ea28b3b76324769e6158d7f95be1" %}
+{% set build = 0 %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  fn: {{ name }}-{{ version }}.{{ bundle }}
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.{{ bundle }}
+  {{ hash_type }}: {{ hash }}
+
+build:
+  noarch: python
+  number: {{ build }}
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+  entry_points:
+    - pbr = pbr.cmd.main:main
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+    - pip
+
+test:
+  imports:
+    - pbr
+    - pbr.cmd
+    - pbr.hooks
+
+  commands:
+    - pbr --help
+
+about:
+  home: https://launchpad.net/pbr
+  license_file: LICENSE
+  license: Apache 2.0
+  license_family: Apache
+  summary: Python Build Reasonableness
+  doc_url: https://docs.openstack.org/developer/pbr/
+  dev_url: https://git.openstack.org/cgit/openstack-dev/pbr
+
+extra:
+  recipe-maintainers:
+    - jakirkham
+    - pmlandwehr

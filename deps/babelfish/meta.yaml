@@ -1,0 +1,44 @@
+{% set name = "babelfish" %}
+{% set version = "0.5.5" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  md5: 5f930555649692997bcf80bb5f42d9db
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+
+test:
+  requires:
+    - nose
+    - coverage
+
+  imports:
+    - {{ name }}
+
+  commands:
+    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
+
+about:
+  home: https://github.com/Diaoul/babelfish
+  license: BSD 3-Clause
+  summary: 'A module to work with countries and languages'
+
+extra:
+  recipe-maintainers:
+    - anjos

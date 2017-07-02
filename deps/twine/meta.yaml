@@ -1,0 +1,57 @@
+{% set name = "twine" %}
+{% set version = "1.9.1" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  fn: twine-{{ version }}.tar.gz
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  md5: de122855ee8dbd3ad29b1fddb839bf73
+
+
+build:
+  noarch: python
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record record.txt
+  entry_points:
+    - twine = twine.__main__:main
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - pkginfo >=1.0
+    - requests >=2.5.0
+    - requests-toolbelt >=0.5.1
+    - clint
+    - tqdm
+
+  run:
+    - python
+    - pkginfo >=1.0
+    - requests >=2.5.0
+    - requests-toolbelt >=0.5.1
+    - setuptools >=0.7.0
+    - clint
+    - tqdm
+
+test:
+  imports:
+    - twine
+    - twine.commands
+  commands:
+    - twine --help
+
+about:
+  home: https://github.com/pypa/twine
+  license: Apache  2.0
+  license_family: Apache
+  license_file: LICENSE
+  summary: 'Collection of utilities for interacting with PyPI'
+
+extra:
+  recipe-maintainers:
+    - janschulz
+    - SylvainCorlay

@@ -12,7 +12,11 @@ Install
 I advise you to install a Conda_-based environment for deployment with this
 command line::
 
-  $ conda env create -f env.yml
+  $ conda env create -f dev.yml
+  $ buildout
+
+After running ``buildout``, you should have all executables inside the ``bin/``
+directory.
 
 
 API Keys
@@ -23,6 +27,8 @@ to contact the movie/TV show database. You may pass the keys everytime you use
 one of the applications bundled or permanently set it up on your account and
 let the apps find it. The search order is the following:
 
+0. If you pass keys, username and passwords through the command line, then they
+   take precedence
 1. If a file named ``.librarianrc`` exists on the current directory, then it is
    loaded and it should contain a variable named ``tmdbkey`` with the value of
    your API key
@@ -58,8 +64,8 @@ To download subtitles for movies and TV shows, we use `subliminal`_::
 Converting to MP4
 -----------------
 
-This is done through ffmpeg, with parameters optimized for better cross-device
-compatibility.
+This is done through ffmpeg-python, with parameters optimized for better
+cross-device compatibility.
 
   $ ./bin/tomp4.py
 
@@ -89,6 +95,64 @@ Once information is retrieved from IMDB (or TMDB), it is recorded on the MP4
 file using mutagen_ and qtfaststart_.
 
 
+Development
+===========
+
+
+Build
+-----
+
+To build the project and make it ready to run, do::
+
+  $ source activate librarian
+  $ buildout
+
+This command should leave you with a functional environment.
+
+
+Testing
+-------
+
+To test the package, run the following::
+
+  $ ./bin/nosetests -sv --with-coverage --cover-package=librarian
+
+
+Conda Builds
+============
+
+Building dependencies requires you install ``conda-build``. Do the following to
+prepare::
+
+  $ conda install -n root conda-build anaconda-client
+
+Then, you can build dependencies one by one, in order::
+
+  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/ffmpeg-python deps/mutagen deps/qtfaststart deps/args deps/clint deps/pbr deps/requests-toolbelt deps/tqdm deps/twine deps/tvdbapi-client; do conda build $p; done
+  $ TMDB_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx conda build deps/tmdbsimple
+
+To build some of the packages, you'll need to setup environment variables with
+API keys, usernames and passwords.
+
+.. note::
+
+   As of today, subliminal_ is still installed as a PIP package.
+
+
+Anaconda Uploads
+================
+
+To upload all built dependencies (so you don't have to re-build them
+everytime), do::
+
+  $ anaconda login
+  # enter credentials
+  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,ffmpeg-python,mutagen,qtfaststart,args,clint,pbr,requests-toolbelt,tqdm,twine,tmdbsimple,tvdbapi-client,stevedore}-*.tar.bz2
+
+
+.. Place your references after this line
+.. _conda: http://conda.pydata.org/miniconda.html
+.. _mediainfo: https://mediaarea.net/en/MediaInfo
 .. Place your references after this line
 .. _conda: http://conda.pydata.org/miniconda.html
 .. _guessit: https://pypi.python.org/pypi/guessit
@@ -97,3 +161,4 @@ file using mutagen_ and qtfaststart_.
 .. _mutagen: https://mutagen.readthedocs.io/en/latest/
 .. _qtfaststart: https://github.com/danielgtaylor/qtfaststart
 .. _sickbeard's mp4 automator: https://github.com/mdhiggins/sickbeard_mp4_automator
+.. _ffmpeg-python: https://github.com/kkroening/ffmpeg-python

@@ -1,0 +1,47 @@
+{% set name = "rebulk" %}
+{% set version = "0.9.0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  md5: 9f1a6c3c26e5e9b4fb748c1ca27557ab
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - pytest-runner
+
+  run:
+    - python
+    - six
+
+test:
+  requires:
+    - nose
+    - pytest
+    - coverage
+
+  imports:
+    - {{ name }}
+
+  commands:
+    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
+
+about:
+  home: https://github.com/Toilal/rebulk/
+  license: MIT
+  summary: 'Define simple search patterns in bulk to perform advanced matching on any string'
+
+extra:
+  recipe-maintainers:
+    - anjos

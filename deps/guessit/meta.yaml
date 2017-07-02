@@ -1,0 +1,55 @@
+{% set name = "guessit" %}
+{% set version = "2.1.4" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  md5: b4fee9c4e106e6de0020e3d143932bb3
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+  entry_points:
+    - {{ name }} = {{ name }}.__main__:main
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - pytest-runner
+
+  run:
+    - python
+    - rebulk >=0.9.0
+    - babelfish >=0.5.5
+    - python-dateutil
+
+test:
+  requires:
+    - nose
+    - pytest >=2.7.3
+    - pyyaml
+    - coverage
+
+  imports:
+    - {{ name }}
+
+  commands:
+    - {{ name }} --help
+    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }} --exclude=".*TestBenchmark.*" --exclude=".*TestYml.*"
+
+about:
+  home: https://github.com/guessit-io/guessit
+  license_family: LGPL
+  license: LGPLv3
+  summary: 'GuessIt is a python library that extracts as much information as possible from a video filename'
+
+extra:
+  recipe-maintainers:
+    - anjos

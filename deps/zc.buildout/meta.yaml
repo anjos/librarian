@@ -1,0 +1,41 @@
+{% set name = "zc.buildout" %}
+{% set version = "2.9.4" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  fn: {{ name }}-{{ version }}.tar.gz
+  url: https://pypi.io/packages/source/z/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  md5: 04ab4aa359488cff25329ce18560f4c2
+
+build:
+  noarch: python
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+  entry_points:
+    - buildout = zc.buildout.buildout:main
+
+requirements:
+  build:
+    - python
+    - setuptools >=8.0
+
+  run:
+    - python
+    - setuptools >=8.0
+
+test:
+  imports:
+    - zc
+    - zc.buildout
+
+  commands:
+    - buildout --help
+
+about:
+  home: http://buildout.org
+  license: Zope Public License
+  summary: 'System for managing development buildouts'
