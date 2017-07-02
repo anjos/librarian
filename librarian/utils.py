@@ -362,9 +362,9 @@ def retag_movie(filename, movie):
 
   try:
     video.delete()
-    logger.info("Successfuly deleted currently existing tags on file")
+    logger.debug("Successfuly deleted currently existing tags on file")
   except IOError:
-    self.log.warn("Unable to clear original tags, attempting to proceed...")
+    logger.warn("Unable to clear original tags, attempting to proceed...")
 
   video["\xa9nam"] = movie.title
   video["desc"] = movie.tagline
@@ -375,9 +375,10 @@ def retag_movie(filename, movie):
   video["\xa9gen"] = movie.genres[0]['name']
   video["----:com.apple.iTunes:iTunMOVI"] = _make_xml(movie)
 
-  us_cert = _us_certification(movie).encode('ascii', 'ignore')
+  # tries to add US certification to the movie
+  us_cert = _us_certification(movie)
   if us_cert is not None:
-    video["----:com.apple.iTunes:iTunEXTC"] = us_cert
+    video["----:com.apple.iTunes:iTunEXTC"] = us_cert.encode('ascii', 'ignore')
 
   if hasattr(movie, 'poster_path'):
     bindata = _get_image(movie)
