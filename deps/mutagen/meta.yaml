@@ -3,7 +3,7 @@
 {% set bundle = "tar.gz" %}
 {% set hash_type = "sha256" %}
 {% set hash_val = "23990f70ae678c7b8df3fd59e2adbefa5fe392c36da8c71d2254b21c6cd78766" %}
-{% set build = 0 %}
+{% set build = 1 %}
 
 package:
   name: {{ name|lower }}
@@ -19,27 +19,48 @@ build:
   preserve_egg_dir: True
   number: {{ build }}
   script: python setup.py install
+  entry_points:
+    - mid3cp = mutagen._tools.mid3cp:entry_point
+    - mid3iconv = mutagen._tools.mid3iconv:entry_point
+    - mid3v2 = mutagen._tools.mid3v2:entry_point
+    - moggsplit = mutagen._tools.moggsplit:entry_point
+    - mutagen-inspect = mutagen._tools.mutagen_inspect:entry_point
+    - mutagen-pony = mutagen._tools.mutagen_pony:entry_point
 
 requirements:
   build:
     - python
+    - setuptools
 
   run:
     - python
 
 test:
+  requires:
+    - nose
+    - coverage
+    - pytest
+    - pyflakes
+    - pep8
+
   imports:
     - mutagen
     - mutagen.asf
     - mutagen.id3
     - mutagen.mp4
 
+  source_files:
+    - tests/*
+
   commands:
     - mid3cp -h
     - mid3iconv -h
+    - mid3v2 -h
     - moggsplit -h
     - mutagen-inspect -h
     - mutagen-pony -h
+    - nosetests -sv --with-coverage --cover-package={{ name }} --exclude='.*test__id3frames.*' --exclude='.*iter_test_file_objects.*' --exclude='.*test_encoding.*' tests
+
 
 about:
   home: https://github.com/quodlibet/mutagen
