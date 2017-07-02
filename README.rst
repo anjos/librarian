@@ -12,7 +12,7 @@ Install
 I advise you to install a Conda_-based environment for deployment with this
 command line::
 
-  $ conda env create -f dev.yml
+  $ conda env create --force -f dev.yml
   $ source activate librarian-dev
   $ buildout
 
@@ -120,7 +120,7 @@ Build
 
 To build the project and make it ready to run, do::
 
-  $ conda env create -f dev.yml
+  $ conda env create --force -f dev.yml
   $ source activate librarian-dev
   $ buildout
 
@@ -145,7 +145,7 @@ prepare::
 
 Then, you can build dependencies one by one, in order::
 
-  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/ffmpeg-python deps/mutagen deps/qtfaststart deps/args deps/clint deps/pbr deps/requests-toolbelt deps/tqdm deps/twine deps/tvdbapi-client deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache; do conda build $p; done
+  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/ffmpeg-python deps/mutagen deps/qtfaststart deps/args deps/clint deps/pbr deps/requests-toolbelt deps/tqdm deps/twine deps/tvdbapi-client deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache deps/subliminal; do conda build $p; done
   $ TMDB_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx conda build deps/tmdbsimple
 
 To build some of the packages, you'll need to setup environment variables with
@@ -164,7 +164,7 @@ everytime), do::
 
   $ anaconda login
   # enter credentials
-  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,ffmpeg-python,mutagen,qtfaststart,args,clint,pbr,requests-toolbelt,tqdm,twine,tmdbsimple,tvdbapi-client,stevedore,rarfile,pysrt,enzyme,dogpile.cache}-*.tar.bz2
+  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,ffmpeg-python,mutagen,qtfaststart,args,clint,pbr,requests-toolbelt,tqdm,twine,tmdbsimple,tvdbapi-client,stevedore,rarfile,pysrt,enzyme,dogpile.cache,subliminal}-*.tar.bz2
 
 
 .. Place your references after this line
