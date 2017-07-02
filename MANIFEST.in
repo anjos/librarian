@@ -1,1 +1,1 @@
-include COPYING README.rst buildout.cfg
+include COPYING README.rst buildout.cfg dev.yml

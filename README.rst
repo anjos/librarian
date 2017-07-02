@@ -13,6 +13,7 @@ I advise you to install a Conda_-based environment for deployment with this
 command line::
 
   $ conda env create -f dev.yml
+  $ source activate librarian-dev
   $ buildout
 
 After running ``buildout``, you should have all executables inside the ``bin/``
@@ -104,7 +105,7 @@ Build
 
 To build the project and make it ready to run, do::
 
-  $ source activate librarian
+  $ source activate librarian-dev
   $ buildout
 
 This command should leave you with a functional environment.
