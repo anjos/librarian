@@ -76,7 +76,7 @@ def main(user_input=None):
 
   if args['--query'] is None:
     from ..utils import guess
-    form ..tmdb import record_from_guess
+    from ..tmdb import record_from_guess
     logger.debug("Trying to guess name from filename")
     info = guess(args['<file>'], fullpath=not args['--basename-only'])
     if info['type'] == 'episode':
