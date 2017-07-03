@@ -28,7 +28,7 @@ requirements:
     - qtfaststart
     - tmdbsimple
     - pytvdbapi
-    - ffmpeg_python
+    - ffmpeg-python
 
 test:
   imports:
@@ -39,6 +39,7 @@ test:
     - coverage
 
   commands:
+    - retag_movie.py --help
     - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
 
 about:
