@@ -1,0 +1,47 @@
+{% set name = "pytvdbapi" %}
+{% set version = "0.5.0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  git_url: https://github.com/fuzzycode/pytvdbapi.git
+  git_rev: v{{ version }}
+  patches:
+    - {{ name }}-manifest.patch #package missing test file
+    - {{ name }}-test.patch #remove 1 test and fix 2 others
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+    - httplib2
+
+test:
+  requires:
+    - nose
+    - coverage
+
+  imports:
+    - httplib2
+
+  commands:
+    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
+
+about:
+  home: https://github.com/fuzzycode/pytvdbapi
+  license: LGPLv3
+  summary: 'A comprehensive HTTP client library'
+
+extra:
+  recipe-maintainers:
+    - anjos

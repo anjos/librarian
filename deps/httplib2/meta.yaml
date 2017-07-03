@@ -1,0 +1,48 @@
+{% set name = "httplib2" %}
+{% set version = "0.10.3" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  git_url: https://github.com/httplib2/httplib2
+  git_rev: v{{ version }}
+
+build:
+  noarch: python
+  number: 0
+  preserve_egg_dir: True
+  script: python setup.py install --single-version-externally-managed --record record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+  run:
+    - python
+
+test:
+  requires:
+    - nose
+    - coverage
+
+  source_files:
+    - test/*
+
+  imports:
+    - httplib2
+
+  commands:
+    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
+
+about:
+  home: https://github.com/httplib2/httplib2
+  license: MIT
+  summary: 'A comprehensive HTTP client library'
+
+extra:
+  recipe-maintainers:
+    - ocefpaf
+    - sigmavirus24
+    - anjos

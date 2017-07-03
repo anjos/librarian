@@ -26,7 +26,7 @@ setup(
       'mutagen',
       'qtfaststart',
       'tmdbsimple',
-      'tvdbapi_client',
+      'pytvdbapi',
       'ffmpeg_python',
       ],
 

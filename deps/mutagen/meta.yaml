@@ -14,7 +14,7 @@ source:
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.{{ bundle }}
   {{ hash_type }}: {{ hash_val }}
   patches:
-    - mutagen-1.38-setuptools.patch #use setuptools for packaging
+    - {{ name }}-setuptools.patch #use setuptools for packaging
 
 build:
   noarch: python

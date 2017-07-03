@@ -1,0 +1,36 @@
+diff --git a/pytvdbapi/tests/test_api.py b/pytvdbapi/tests/test_api.py
+index 09fdc89..6fc687b 100644
+--- a/pytvdbapi/tests/test_api.py
++++ b/pytvdbapi/tests/test_api.py
+@@ -166,13 +166,6 @@ class TestSeason(unittest.TestCase):
+ 
+         self.assertEqual(len(season1), 24)
+ 
+-    def test_index(self):
+-        """It should be possible to use the index method on a season"""
+-        season = self.friends[1]
+-
+-        for i, ep in enumerate(season):
+-            self.assertEquals(season.index(ep), i)
+-
+     def test_count(self):
+         """It should be possible to use the count method on a season."""
+         season = self.friends[1]
+@@ -303,7 +296,7 @@ class TestShow(unittest.TestCase):
+         friends.update()
+ 
+         # Now this data should be available
+-        self.assertEqual(friends.Genre, ['Comedy'])
++        self.assertEqual(friends.Genre, ['Comedy', 'Romance'])
+ 
+     def test_invalid_show_attribute(self):
+         """
+@@ -702,7 +695,7 @@ class TestGetEpisode(unittest.TestCase):
+         api = TVDB("B43FF87DE395DF56")
+ 
+         ep = api.get_episode(0, "en", "absolute", True, seriesid=81797, absolutenumber=62)
+-        self.assertEqual(ep.EpisodeName, "The First Obstacle? Giant Whale Laboon Appears")
++        self.assertEqual(ep.EpisodeName, "The First Line of Defense? The Giant Whale Laboon Appears!")
+ 
+     def test_invalid_method(self):
+         """Function should raise TVDBValueError if an invalid method is passed"""

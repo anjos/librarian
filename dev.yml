@@ -9,7 +9,7 @@ dependencies:
 - mutagen
 - qtfaststart
 - tmdbsimple
-- tvdbapi-client
+- pytvdbapi
 - ffmpeg-python
 - subliminal
 - ipdb
