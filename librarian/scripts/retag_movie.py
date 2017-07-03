@@ -71,11 +71,12 @@ def main(user_input=None):
   from ..utils import setup_logger
   logger = setup_logger('librarian', args['--verbose'])
 
-  from ..utils import setup_tmdb_apikey
-  setup_tmdb_apikey(args['--tmdbkey'])
+  from ..tmdb import setup_apikey
+  setup_apikey(args['--tmdbkey'])
 
   if args['--query'] is None:
-    from ..utils import guess, record_from_guess
+    from ..utils import guess
+    form ..tmdb import record_from_guess
     logger.debug("Trying to guess name from filename")
     info = guess(args['<file>'], fullpath=not args['--basename-only'])
     if info['type'] == 'episode':
@@ -84,7 +85,7 @@ def main(user_input=None):
     movie = record_from_guess(info)
 
   else:
-    from ..utils import record_from_query
+    from ..tmdb import record_from_query
     movie = record_from_query(args['--query'])
 
   # printout some information about the movie
@@ -92,7 +93,7 @@ def main(user_input=None):
   logger.info('Release date: %s', movie.release_date)
   logger.info('TMDB id: %d', movie.id)
 
-  from ..utils import retag_movie
+  from ..tmdb import retag_movie
   retag_movie(args['<file>'], movie)
 
   sys.exit(0)
