@@ -28,11 +28,10 @@ to contact the movie/TV show database. You may pass the keys everytime you use
 one of the applications bundled or permanently set it up on your account and
 let the apps find it. The search order is the following:
 
-0. If you pass keys, username and passwords through the command line, then they
-   take precedence
+0. If you pass the API key through the command line, then they take precedence
 1. If a file named ``.librarianrc`` exists on the current directory, then it is
-   loaded and it should contain a variable named ``tmdbkey`` with the value of
-   your API key
+   loaded and it should contain a variable named ``tmdb`` (or ``tvdb``) inside
+   a section named ``apikeys``, with the value of your API key
 2. If a file named ``.librarianrc`` exists on your home directory and none exist
    on your current directory, than that one is use instead.
 3. If none of the above exist and you don't pass an API key via command-line
@@ -41,11 +40,9 @@ let the apps find it. The search order is the following:
 The syntax of the ``.librarianrc`` file is simple, following a Windows
 INI-style syntax::
 
-  [apis]
-  tmdbkey = 1234567890abcdef123456
-  tvdbkey = 1234567890abcdef123456
-  tvdbuser = username
-  tvdbpass = yourpass
+  [apikeys]
+  tmdb = 1234567890abcdef123456
+  tvdb = 1234567890abc
 
 
 Usage
