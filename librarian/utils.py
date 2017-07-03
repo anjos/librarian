@@ -206,41 +206,85 @@ def record_from_guess(guess):
   return record_from_query(guess['title'], guess.get('year'))
 
 
-def _make_xml(movie):
-  '''Builds an XML string with movie information'''
+def _make_apple_plist(movie):
+  '''Builds an XML string with movie information
+
+  Returns a string containing a XML document which can be parsed by Apple
+  movie players. It contains information about the cast and crew of the movie
+  or TV show episode.
+
+  The XML document is written in a single string with now new-lines. If it
+  would be indented, it could look like this:
+
+  .. code-block:: xml
+
+     <?xml version="1.0" encoding="UTF-8"?>
+     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+     <plist version="1.0">
+       <dict>
+         <key>cast</key>
+         <array>
+           <dict><key>name</key><string>Ewan McGregor</string></dict>
+           <dict><key>name</key><string>Natalie Portman</string></dict>
+           <dict><key>name</key><string>Hayden Christensen</string></dict>
+           <dict><key>name</key><string>Ian McDiarmid</string></dict>
+           <dict><key>name</key><string>Samuel L. Jackson</string></dict>
+         </array>
+         <key>screenwriters</key>
+         <array>
+           <dict><key>name</key><string>Jonathan Hales</string></dict>
+           <dict><key>name</key><string>George Lucas</string></dict>
+         </array>
+         <key>directors</key>
+         <array>
+           <dict><key>name</key><string>George Lucas</string></dict>
+           <dict><key>name</key><string>James McTeigue</string></dict>
+         </array>
+         <key>producers</key>
+         <array>
+           <dict><key>name</key><string>George Lucas</string></dict>
+           <dict><key>name</key><string>Rick McCallum</string></dict>
+           <dict><key>name</key><string>Robin Gurland</string></dict>
+         </array>
+       </dict>
+     </plist>
+
+  '''
 
   logger.debug('Building XML info tree...')
 
-  header = b"<?xml version=\"1.0\" encoding=\"UTF-8\"?><!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\"><plist version=\"1.0\"><dict>\n"
+  from xml.etree import ElementTree
+
+  header = b'<?xml version="1.0" encoding="UTF-8"?>' \
+      b'<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" ' \
+      b'"http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
 
   output = io.BytesIO()
   output.write(header)
 
-  # Write actors
-  output.write(b"<key>cast</key><array>\n")
-  for a in movie.cast[:5]:
-    output.write(b"<dict><key>name</key><string>%s</string></dict>\n" % a['name'].encode('ascii', 'ignore'))
-  output.write(b'</array>')
+  # creates root elements
+  plist  = ElementTree.Element('plist', {'version': '1.0'})
+  keyval = ElementTree.SubElement(plist, 'dict')
 
-  # Write screenwriters
-  output.write(b"<key>screenwriters</key><array>\n")
-  for w in [k for k in movie.crew if k['department'] == 'Writing']:
-    output.write(b"<dict><key>name</key><string>%s</string></dict>\n" % w['name'].encode('ascii', 'ignore'))
-  output.write(b'</array>')
+  # inserts a section of
+  def _insert_section(name, entries):
+    ElementTree.SubElement(keyval, 'key').text = name
+    array = ElementTree.SubElement(keyval, 'array')
+    for k in entries:
+      kv = ElementTree.SubElement(array, 'dict')
+      ElementTree.SubElement(kv, 'key').text = 'name'
+      ElementTree.SubElement(kv, 'string').text = k['name']
 
-  # Write directors
-  output.write(b"<key>directors</key><array>\n")
-  for d in [k for k in movie.crew if k['department'] == 'Directing']:
-    output.write(b"<dict><key>name</key><string>%s</string></dict>\n" % d['name'].encode('ascii', 'ignore'))
-  output.write(b'</array>')
+  _insert_section('cast', movie.cast[:5])
+  all_writers = [k for k in movie.crew if k['department'] == 'Writing']
+  _insert_section('screenwriters', all_writers[:5])
+  all_directors = [k for k in movie.crew if k['department'] == 'Directing']
+  _insert_section('directories', all_directors[:5])
+  all_producers = [k for k in movie.crew if k['department'] == 'Production']
+  _insert_section('producers', all_producers[:5])
 
-  # Write producers
-  output.write(b"<key>producers</key><array>\n")
-  for p in [k for k in movie.crew if k['department'] == 'Production']:
-    output.write(b"<dict><key>name</key><string>%s</string></dict>\n" % p['name'].encode('ascii', 'ignore'))
-  output.write(b'</array>')
-
-  output.write(b"</dict></plist>\n")
+  et = ElementTree.ElementTree(plist)
+  et.write(output, encoding='utf-8')
 
   return output.getvalue()
 
@@ -260,7 +304,7 @@ def _us_certification(movie):
 
   ratings_us = [k for k in movie.countries if k['iso_3166_1'] == 'US']
   if ratings_us and ratings_us[0].get('certification') is not None and \
-      ratings_us[0].get('certification') in ('G','PG','PG-13','R''NC-17'):
+      ratings_us[0].get('certification') in ('G','PG','PG-13','R', 'NC-17'):
     value = ratings_us[0].get('certification')
     numerical = {
         'G': '100',
@@ -269,7 +313,7 @@ def _us_certification(movie):
         'R': '400',
         'NC-17': '500',
         }[value]
-    return 'mpaa|' + value.capitalize() + '|' + numerical + '|'
+    return 'mpaa|' + value + '|' + numerical + '|'
 
 
 def retag_movie(filename, movie):
@@ -300,8 +344,8 @@ def retag_movie(filename, movie):
   video["\xa9day"] = movie.release_date
   video["stik"] = [9]  # Movie iTunes category
   #video["hdvd"] = self.HD
-  video["\xa9gen"] = movie.genres[0]['name']
-  video["----:com.apple.iTunes:iTunMOVI"] = _make_xml(movie)
+  video["\xa9gen"] = [k['name'] for k in movie.genres]
+  video["----:com.apple.iTunes:iTunMOVI"] = _make_apple_plist(movie)
 
   # tries to add US certification to the movie
   us_cert = _us_certification(movie)
