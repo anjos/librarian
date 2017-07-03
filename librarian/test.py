@@ -59,10 +59,10 @@ def test_tmdb_from_query():
 
   movie = record_from_query('Star Wars Episode II')
 
-  nose.tools.eq_(movie['title'], 'Star Wars: Episode II - Attack of the Clones')
-  nose.tools.eq_(movie['release_date'], '2002-05-15')
-  assert 'poster_path' in movie
-  nose.tools.eq_(movie['original_language'], 'en')
+  nose.tools.eq_(movie.title, 'Star Wars: Episode II - Attack of the Clones')
+  nose.tools.eq_(movie.release_date, '2002-05-15')
+  assert hasattr(movie, 'poster_path')
+  nose.tools.eq_(movie.original_language, 'en')
 
 
 def test_tmdb_from_guess():
@@ -71,7 +71,7 @@ def test_tmdb_from_guess():
       fullpath=False)
   movie = record_from_guess(info)
 
-  nose.tools.eq_(movie['title'], 'Rogue One: A Star Wars Story')
-  nose.tools.eq_(movie['release_date'], '2016-12-14')
-  assert 'poster_path' in movie
-  nose.tools.eq_(movie['original_language'], 'en')
+  nose.tools.eq_(movie.title, 'Rogue One: A Star Wars Story')
+  nose.tools.eq_(movie.release_date, '2016-12-14')
+  assert hasattr(movie, 'poster_path')
+  nose.tools.eq_(movie.original_language, 'en')
