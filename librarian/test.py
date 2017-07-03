@@ -3,11 +3,15 @@
 
 '''Test units'''
 
-
+import os
+import tempfile
+import pkg_resources
+from xml.etree import ElementTree
 import nose.tools
+from mutagen import mp4
 
 from .utils import guess, record_from_query, record_from_guess, \
-    setup_tmdb_apikey
+    setup_tmdb_apikey, retag_movie
 
 setup_tmdb_apikey()
 
@@ -75,3 +79,37 @@ def test_tmdb_from_guess():
   nose.tools.eq_(movie.release_date, '2016-12-14')
   assert hasattr(movie, 'poster_path')
   nose.tools.eq_(movie.original_language, 'en')
+
+
+def test_mp4_tagging():
+
+  movie = record_from_query('Star Wars Episode II')
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'movie.mp4'))
+  with tempfile.NamedTemporaryFile() as tmp:
+    with open(filename, 'rb') as original: tmp.write(original.read())
+    tmp.flush()
+    tmp.seek(0)
+    retag_movie(tmp.name, movie)
+    rewritten = mp4.MP4(tmp)
+    nose.tools.eq_(rewritten.tags['\xa9nam'][0], movie.title)
+    nose.tools.eq_(rewritten.tags['desc'][0], movie.tagline)
+    nose.tools.eq_(rewritten.tags['ldes'][0], movie.overview)
+    nose.tools.eq_(rewritten.tags['\xa9day'][0], movie.release_date)
+    nose.tools.eq_(rewritten.tags['stik'], [9])
+    #nose.tools.eq_(rewritten.tags['hdvd"] = self.HD
+    nose.tools.eq_(sorted(rewritten.tags['\xa9gen']),
+                   sorted([k['name'] for k in movie.genres]))
+    us_cert = rewritten.tags["----:com.apple.iTunes:iTunEXTC"][0].decode()
+    nose.tools.eq_(us_cert, 'mpaa|PG|200|')
+
+    #ensures we can parse the embedded XML document
+    plist = rewritten.tags['----:com.apple.iTunes:iTunMOVI'][0]
+    xml = ElementTree.fromstring(plist)
+    nose.tools.eq_(xml.tag, 'plist')
+
+    #check cover is present
+    covr = rewritten['covr']
+    nose.tools.eq_(len(covr), 1)
+    covr = covr[0]
+    assert len(covr) != 0
