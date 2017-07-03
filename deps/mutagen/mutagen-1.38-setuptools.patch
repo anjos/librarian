@@ -1,0 +1,49 @@
+diff -u mutagen-1.38.orig/setup.py mutagen-1.38/setup.py
+--- mutagen-1.38.orig/setup.py	2017-07-03 08:07:36.000000000 +0200
++++ mutagen-1.38/setup.py	2017-07-03 08:15:08.000000000 +0200
+@@ -14,7 +14,7 @@
+ import subprocess
+ import tarfile
+
+-from distutils.core import setup, Command
++from setuptools import setup, find_packages, Command
+ from distutils.command.clean import clean as distutils_clean
+ from distutils.command.sdist import sdist
+ from distutils import dir_util
+@@ -258,23 +258,21 @@
+             'License :: OSI Approved :: GNU General Public License v2 (GPLv2)',
+             'Topic :: Multimedia :: Sound/Audio',
+           ],
+-          packages=[
+-            "mutagen",
+-            "mutagen.id3",
+-            "mutagen.mp4",
+-            "mutagen.asf",
+-            "mutagen.mp3",
+-            "mutagen._senf",
+-            "mutagen._tools",
+-          ],
++          packages=find_packages(),
++          include_package_data=True,
+           data_files=data_files,
++          entry_points = {
++            'console_scripts': [
++              'mid3cp = mutagen._tools.mid3cp:entry_point',
++              'mid3iconv = mutagen._tools.mid3iconv:entry_point',
++              'mid3v2 = mutagen._tools.mid3v2:entry_point',
++              'moggsplit = mutagen._tools.moggsplit:entry_point',
++              'mutagen-inspect = mutagen._tools.mutagen_inspect:entry_point',
++              'mutagen-pony = mutagen._tools.mutagen_pony:entry_point',
++            ],
++          },
++
+           scripts=[os.path.join("tools", name) for name in [
+-            "mid3cp",
+-            "mid3iconv",
+-            "mid3v2",
+-            "moggsplit",
+-            "mutagen-inspect",
+-            "mutagen-pony",
+           ]],
+           long_description=long_description,
+     )

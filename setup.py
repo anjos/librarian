@@ -23,7 +23,7 @@ setup(
       'docopt',
       'guessit',
       'subliminal',
-      #'mutagen', #this package is not setuptools compatible?
+      'mutagen',
       'qtfaststart',
       'tmdbsimple',
       'tvdbapi_client',

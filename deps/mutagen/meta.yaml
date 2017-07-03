@@ -3,7 +3,7 @@
 {% set bundle = "tar.gz" %}
 {% set hash_type = "sha256" %}
 {% set hash_val = "23990f70ae678c7b8df3fd59e2adbefa5fe392c36da8c71d2254b21c6cd78766" %}
-{% set build = 1 %}
+{% set build = 2 %}
 
 package:
   name: {{ name|lower }}
@@ -13,12 +13,14 @@ source:
   fn: {{ name }}-{{ version }}.{{ bundle }}
   url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.{{ bundle }}
   {{ hash_type }}: {{ hash_val }}
+  patches:
+    - mutagen-1.38-setuptools.patch #use setuptools for packaging
 
 build:
   noarch: python
   preserve_egg_dir: True
   number: {{ build }}
-  script: python setup.py install
+  script: python setup.py install --single-version-externally-managed --record=record.txt
   entry_points:
     - mid3cp = mutagen._tools.mid3cp:entry_point
     - mid3iconv = mutagen._tools.mid3iconv:entry_point
