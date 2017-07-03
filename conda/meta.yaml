@@ -1,0 +1,48 @@
+{% set name="librarian" %}
+{% set version="0.0.1a0" %}
+
+package:
+  name: {{ name }}
+  version: {{ version }}
+
+source:
+  path: ../
+
+build:
+  noarch: python
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+    - setuptools
+
+  run:
+    - python
+    - setuptools
+    - docopt
+    - guessit
+    - subliminal
+    - mutagen
+    - qtfaststart
+    - tmdbsimple
+    - pytvdbapi
+    - ffmpeg_python
+
+test:
+  imports:
+    - {{ name }}
+
+  requires:
+    - nose
+    - coverage
+
+  commands:
+    - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
+
+about:
+  home: https://github.com/anjos/librarian
+  license: GPLv3
+  summary: Utilities for organizing Movie/TV show libraries
+  license_family: GPL
