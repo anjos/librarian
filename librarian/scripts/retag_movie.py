@@ -3,7 +3,7 @@
 
 """Re-tag an MP4 video with information from TMDB
 
-Usage: %(prog)s [-v...] [--query=<query>|--imdbid=<id>] [--tmdbkey=<key>]
+Usage: %(prog)s [-v...] [--query=<query>] [--tmdbkey=<key>]
                 [--basename-only] <file>
        %(prog)s --help
        %(prog)s --version
@@ -21,15 +21,13 @@ Options:
   -q, --query=<title>  Specifies the title (or query) to search for information
                        on TMDB. This is handy if the movie name can't be
                        guessed from the current filename
-  -i, --imdbid=<id>    Specifies the IMDB identifier (starting with "tt"). This
-                       is handy if you want to skip searching and download
   -t, --tmdbkey=<key>  If provided, then use this key instead of searching for
                        one in your home directory or the current directory on
                        the file named ".librarianrc.py"
-  -b, --basename-only  If neither and IMDB identifier nor a title is passed,
-                       this app will try to guess the movie title from the
-                       filename. If you set this flag, then only the basename
-                       of the file will be considered. Otherwise, the full path
+  -b, --basename-only  If a query is not passed, this app will try to guess the
+                       movie title from the filename. If you set this flag,
+                       then only the basename of the file will be considered.
+                       Otherwise, the full path
 
 
 Examples:
