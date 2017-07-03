@@ -13,18 +13,21 @@ from .utils import var_from_config
 
 logger = logging.getLogger(__name__)
 
+
 def setup_apikey(user_provided=None):
   '''Sets up the TMDB API key for this session
 
   This is done by looking to 3 different places in this order of preference:
 
   1. If the user provided a key via the command-line, use it
-  2. If the user has a file called ``.librarianrc`` on the current
-     directory, load a config file from it and use the values set on it
-  3. If the user has a file called ``.librarianrc`` on ther home
-     directory, load a config file from it and use the values set on it
-
-  If no key is found, a :py:exc:`RuntimeError` is raised
+  2. If no key was provided, check the environment variable ``TMDB_APIKEY``. If
+     that is set, uset it
+  3. If 1. and 2. failed and if the user has a file called ``.librarianrc`` on
+     the current directory, load a config file from it and use the values set
+     on it
+  4. If everything else fails and if the user has a file called
+     ``.librarianrc`` on ther home directory, load a config file from it and
+     use the values set on it
 
 
   Parameters:
@@ -40,6 +43,11 @@ def setup_apikey(user_provided=None):
   '''
 
   if user_provided is not None:
+    tmdb.API_KEY = user_provided
+    return
+
+  envkey = os.environ.get('TMDB_APIKEY')
+  if envkey is not None:
     tmdb.API_KEY = user_provided
     return
 
