@@ -14,19 +14,19 @@ import configparser
 
 import guessit
 import tmdbsimple as tmdb
-import tvdbapi_client
+import pytvdbapi as tvdb
 from mutagen.mp4 import MP4, MP4Cover
 
 logger = logging.getLogger(__name__)
 
 
-def tmdb_key_from_config(fname):
+def var_from_config(fname, section, name):
   '''Loads the TMDB API key from configuration file'''
 
   parser = configparser.ConfigParser()
   parser.read(fname)
-  if 'apis' in parser and 'tmdbkey' in parser['apis']:
-    return parser['apis']['tmdbkey']
+  if section in parser:
+    return parser[section].get(name)
   return None
 
 
@@ -61,91 +61,19 @@ def setup_tmdb_apikey(user_provided=None):
     return
 
   if os.path.exists('.librarianrc'):
-    key = tmdb_key_from_config('.librarianrc')
+    key = var_from_config('.librarianrc', 'apikeys', 'tmdb')
     if key is not None:
       tmdb.API_KEY = key
       return
 
   home_path = os.path.join(os.environ['HOME'], '.librarianrc')
   if os.path.exists(home_path):
-    key = tmdb_key_from_config(home_path)
+    key = var_from_config('.librarianrc', 'apikeys', 'tmdb')
     if key is not None:
       tmdb.API_KEY = key
       return
 
   raise RuntimeError('Cannot setup TMDB API key')
-
-
-def tvdb_info_from_config(fname):
-  '''Loads the TVDB API key, username and passwd from configuration file'''
-
-  key, user, pwd = None, None, None
-
-  parser = configparser.ConfigParser()
-  parser.read(fname)
-  if 'apis' in parser:
-    if 'tvdbkey' in parser['apis']:
-      key = parser['apis']['tvdbkey']
-    if 'tvdbuser' in parser['apis']:
-      user = parser['apis']['tvdbuser']
-    if 'tvdbpass' in parser['apis']:
-      pwd = parser['apis']['tvdbpass']
-  return key, user, pwd
-
-
-def setup_tvdb_apikey(key=None, username=None, passwd=None):
-  '''Sets up the TVDB API key for this session
-
-  This is done by looking to 3 different places in this order of preference:
-
-  1. If the user provided a username, password and key via the command-line,
-     use them
-  2. If the user has a file called ``.librarianrc`` on the current
-     directory, load a config file from it and use the values set on it
-  3. If the user has a file called ``.librarianrc`` on ther home
-     directory, load a config file from it and use the values set on it
-
-  If no key is found, a :py:exc:`RuntimeError` is raised
-
-
-  Parameters:
-
-    key (:py:class:`str`, optional): If the user provided a key via the
-      application command-line, pass it here
-
-    username (:py:class:`str`, optional): The user name on TVDB to setup the
-      client for
-
-    passwd (:py:class:`str`, optional): The user password on TVDB to setup the
-      client for
-
-
-  Raises:
-
-    RuntimeError: In case it cannot find a proper API key for TMDB
-
-  '''
-
-  if username is None or passwd is None or key is None:
-    # try to fetch information from config file
-    if os.path.exists('.librarianrc'):
-      _apikey, _username, _userpass = tvdb_info_from_config('.librarianrc')
-      apikey = apikey or _apikey
-      username = username or _username
-      passwd = passwd or _userpass
-    elif os.path.exists(os.path.join(os.environ['HOME'], '.librarianrc')):
-      _apikey, _username, _userpass = \
-          tvdb_info_from_config(os.path.join(os.environ['HOME'],
-            '.librarianrc'))
-      apikey = apikey or _apikey
-      username = username or _username
-      passwd = passwd or _userpass
-
-  if username is not None and passwd is not None and key is not None:
-    return tvdbapi_client.getclient(apikey=key, username=username,
-      userpass=passwd)
-
-  raise RuntimeError('Cannot setup TVDB API key/user/pass - missing info')
 
 
 def setup_logger(name, verbosity):
