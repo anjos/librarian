@@ -171,6 +171,6 @@ everytime), do::
 .. _tmdbsimple: https://pypi.python.org/pypi/tmdbsimple
 .. _mutagen: https://mutagen.readthedocs.io/en/latest/
 .. _qtfaststart: https://github.com/danielgtaylor/qtfaststart
-.. _tvdbapi-client: https://github.com/shad7/tvdbapi_client
+.. _pytvdbapi: https://github.com/fuzzycode/pytvdbapi
 .. _sickbeard's mp4 automator: https://github.com/mdhiggins/sickbeard_mp4_automator
 .. _ffmpeg-python: https://github.com/kkroening/ffmpeg-python
