@@ -100,12 +100,12 @@ To re-tag an MP4 file with a movie, do the following::
 
 This command will attempt to guess the TV show title season and episode from
 the input file name using `guessit`_. The program will then probe the TVDB
-database using `tvdbapi-client`_.
+database using `pytvdbapi`_.
 
-You can specify a friendly search string (e.g. series name, season and episode
+You can specify a friendly name string (e.g. series name, season and episode
 number ) to optimize the search and avoid guessing::
 
-  $ ./bin/retag.py <file>.mp4 --query="<query-matching-movie>"
+  $ ./bin/retag.py <file>.mp4 --name="TV Show Name" --season=1 --episode=1
 
 Once information is retrieved from TVDB, it is recorded on the MP4 file using
 mutagen_, similar to movies.
@@ -145,15 +145,11 @@ prepare::
 
 Then, you can build dependencies one by one, in order::
 
-  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/ffmpeg-python deps/mutagen deps/qtfaststart deps/args deps/clint deps/pbr deps/requests-toolbelt deps/tqdm deps/twine deps/tvdbapi-client deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache deps/subliminal; do conda build $p; done
+  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/ffmpeg-python deps/mutagen deps/qtfaststart deps/pbr deps/httplib2 deps/pytvdbapi deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache deps/subliminal; do conda build $p; done
   $ TMDB_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx conda build deps/tmdbsimple
 
 To build some of the packages, you'll need to setup environment variables with
-API keys, usernames and passwords.
-
-.. note::
-
-   As of today, subliminal_ is still installed as a PIP package.
+API keys.
 
 
 Anaconda Uploads
@@ -164,7 +160,7 @@ everytime), do::
 
   $ anaconda login
   # enter credentials
-  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,ffmpeg-python,mutagen,qtfaststart,args,clint,pbr,requests-toolbelt,tqdm,twine,tmdbsimple,tvdbapi-client,stevedore,rarfile,pysrt,enzyme,dogpile.cache,subliminal}-*.tar.bz2
+  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,ffmpeg-python,mutagen,qtfaststart,pbr,tmdbsimple,pytvdbapi,stevedore,rarfile,pysrt,enzyme,dogpile.cache,subliminal}-*.tar.bz2
 
 
 .. Place your references after this line
