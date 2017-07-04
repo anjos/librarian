@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def setup_apikey(user_provided=None):
   '''Sets up the TMDB API key for this session
 
-  This is done by looking to 3 different places in this order of preference:
+  This is done by looking to 4 different places in this order of preference:
 
   1. If the user provided a key via the command-line, use it
   2. If no key was provided, check the environment variable ``TMDB_APIKEY``. If
@@ -82,7 +82,7 @@ def record_from_query(query, year=None):
 
   Returns:
 
-    Movie: An object representing a movie returned from the tmdbsimple API
+    obj: An object representing a movie returned from the tmdbsimple API
 
   '''
 
@@ -118,7 +118,7 @@ def record_from_guess(guess):
 
   Returns:
 
-    Movie: An object representing a movie returned from the tmdbsimple API
+    obj: An object representing a movie returned from the tmdbsimple API
 
   '''
 
@@ -211,7 +211,7 @@ def _make_apple_plist(movie):
 def _get_image(movie):
   '''Downloads an image associated to a movie into a pre-opened file'''
 
-  import urllib.request
+  from six.moves import urllib
 
   url = 'http://image.tmdb.org/t/p/w500' + movie.poster_path
   logger.debug('Trying to retrieve image at %s', url)
