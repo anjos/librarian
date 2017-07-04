@@ -68,7 +68,7 @@ def main(user_input=None):
 
   completions = dict(
       prog=os.path.basename(sys.argv[0]),
-      version=pkg_resources.require('popster')[0].version
+      version=pkg_resources.require('librarian')[0].version
       )
 
   args = docopt.docopt(
@@ -78,7 +78,7 @@ def main(user_input=None):
       )
 
   from ..utils import setup_logger
-  logger = setup_logger('popster', args['--verbose'])
+  logger = setup_logger('librarian', args['--verbose'])
 
   from ..tvdb import setup_apikey
   setup_apikey(args['--apikey'])
