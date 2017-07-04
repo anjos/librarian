@@ -2,6 +2,7 @@ name: librarian-dev
 channels:
 - anjos
 - defaults
+- conda-forge
 dependencies:
 - python=3.6
 - docopt
