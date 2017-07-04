@@ -14,6 +14,8 @@ build:
   script: python setup.py install --single-version-externally-managed --record=record.txt
   entry_points:
     - retag_movie.py = librarian.scripts.retag_movie:main
+  script_env:
+    - TMDB_APIKEY
 
 requirements:
   build:
