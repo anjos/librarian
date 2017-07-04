@@ -3,7 +3,7 @@
 
 """Re-tag an MP4 video with information from TMDB
 
-Usage: %(prog)s [-v...] [--query=<query>] [--tmdbkey=<key>]
+Usage: %(prog)s [-v...] [--query=<query>] [--apikey=<key>]
                 [--basename-only] <file>
        %(prog)s --help
        %(prog)s --version
@@ -21,9 +21,9 @@ Options:
   -q, --query=<title>  Specifies the title (or query) to search for information
                        on TMDB. This is handy if the movie name can't be
                        guessed from the current filename
-  -t, --tmdbkey=<key>  If provided, then use this key instead of searching for
-                       one in your home directory or the current directory on
-                       the file named ".librarianrc.py"
+  -a, --apikey=<key>   If provided, then use this key instead of searching for
+                       one in the environment (TVDB_APIKEY), your current
+                       working directory or your home directory (.librarianrc)
   -b, --basename-only  If a query is not passed, this app will try to guess the
                        movie title from the filename. If you set this flag,
                        then only the basename of the file will be considered.
@@ -34,11 +34,11 @@ Examples:
 
   1. Guess movie title from filename and re-tag:
 
-     $ %(prog)s -vv movie.mp4
+     $ %(prog)s -vv rogue-one-2016.mp4
 
   2. Suggest the movie title instead of guessing:
 
-     $ %(prog)s -vv movie.mp4 --query="The Great Escape (1976)"
+     $ %(prog)s -vv movie.mp4 --query="Rogue One (2016)"
 
 """
 
@@ -72,7 +72,7 @@ def main(user_input=None):
   logger = setup_logger('librarian', args['--verbose'])
 
   from ..tmdb import setup_apikey
-  setup_apikey(args['--tmdbkey'])
+  setup_apikey(args['--apikey'])
 
   if args['--query'] is None:
     from ..utils import guess
@@ -93,7 +93,7 @@ def main(user_input=None):
   logger.info('Release date: %s', movie.release_date)
   logger.info('TMDB id: %d', movie.id)
 
-  from ..tmdb import retag_movie
-  retag_movie(args['<file>'], movie)
+  from ..tmdb import retag
+  retag(args['<file>'], movie)
 
   sys.exit(0)

@@ -71,13 +71,15 @@ def record_from_query(query, year=None):
   '''Retrieves the TMDB record using the provided query string
 
   This function uses the tmdbsimple package to retrieve information from TMDB.
-  You should set the API key adequately on that module before calling it.
+  You should set the API key adequately module before calling it.
 
 
   Parameters:
 
     query (dict): An arbitrary query string
-    year (:py:class:`int`, optional): If set, then
+    year (:py:class:`int`, optional): If set, then filter search results by
+      year (this value should correspond to the 4-digit julian year - e.g.
+      2012)
 
 
   Returns:
@@ -107,13 +109,13 @@ def record_from_guess(guess):
   '''Retrieves the TMDB record using the provided guess
 
   This function uses the tmdbsimple package to retrieve information from TMDB.
-  You should set the API key adequately on that module before calling it.
+  You should set the API key adequately before calling it.
 
 
   Parameters:
 
     guess (dict): A dictionary containing the guessed information from the
-      movie or TV show episode
+      movie
 
 
   Returns:
@@ -129,8 +131,7 @@ def _make_apple_plist(movie):
   '''Builds an XML string with movie information
 
   Returns a string containing a XML document which can be parsed by Apple
-  movie players. It contains information about the cast and crew of the movie
-  or TV show episode.
+  movie players. It contains information about the cast and crew of the movie.
 
   The XML document is written in a single string with now new-lines. If it
   would be indented, it could look like this:
@@ -198,7 +199,7 @@ def _make_apple_plist(movie):
   all_writers = [k for k in movie.crew if k['department'] == 'Writing']
   _insert_section('screenwriters', all_writers[:5])
   all_directors = [k for k in movie.crew if k['department'] == 'Directing']
-  _insert_section('directories', all_directors[:5])
+  _insert_section('directors', all_directors[:5])
   all_producers = [k for k in movie.crew if k['department'] == 'Production']
   _insert_section('producers', all_producers[:5])
 
@@ -221,21 +222,12 @@ def _get_image(movie):
 def _us_certification(movie):
   '''Outputs the string for MPAA certification, if available'''
 
+  from .utils import US_CONTENT_RATINGS_APPLE
   ratings_us = [k for k in movie.countries if k['iso_3166_1'] == 'US']
-  if ratings_us and ratings_us[0].get('certification') is not None and \
-      ratings_us[0].get('certification') in ('G','PG','PG-13','R', 'NC-17'):
-    value = ratings_us[0].get('certification')
-    numerical = {
-        'G': '100',
-        'PG': '200',
-        'PG-13': '300',
-        'R': '400',
-        'NC-17': '500',
-        }[value]
-    return 'mpaa|' + value + '|' + numerical + '|'
+  return US_CONTENT_RATINGS_APPLE[ratings_us[0].get('certification')]
 
 
-def retag_movie(filename, movie):
+def retag(filename, movie):
   '''Re-tags an MP4 file with information from the movie record
 
 
@@ -265,11 +257,7 @@ def retag_movie(filename, movie):
   #video["hdvd"] = self.HD
   video["\xa9gen"] = [k['name'] for k in movie.genres]
   video["----:com.apple.iTunes:iTunMOVI"] = _make_apple_plist(movie)
-
-  # tries to add US certification to the movie
-  us_cert = _us_certification(movie)
-  if us_cert is not None:
-    video["----:com.apple.iTunes:iTunEXTC"] = us_cert.encode('ascii', 'ignore')
+  video["----:com.apple.iTunes:iTunEXTC"] = _us_certification(movie)
 
   if hasattr(movie, 'poster_path'):
     bindata = _get_image(movie)

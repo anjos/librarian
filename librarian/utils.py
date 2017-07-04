@@ -14,6 +14,23 @@ import guessit
 logger = logging.getLogger(__name__)
 
 
+# Apple tag translations for various US content ratings
+US_CONTENT_RATINGS_APPLE = {
+    None: b'mpaa|Not Rated|000|',
+    "TV-Y": b'us-tv|TV-Y|100|',
+    "TV-Y7": b'us-tv|TV-Y7|200|',
+    "TV-G": b'us-tv|TV-G|300|',
+    "TV-PG": b'us-tv|TV-PG|400|',
+    "TV-14": b'us-tv|TV-14|500|',
+    "TV-MA": b'us-tv|TV-MA|600|',
+    "G": b'mpaa|G|100|',
+    "PG": b'mpaa|PG|200|',
+    "PG-13": b'mpaa|PG-13|300|',
+    "R": b'mpaa|R|400|',
+    "NC-17": b'mpaa|NC-17|500|',
+    }
+
+
 def var_from_config(fname, section, name):
   '''Loads information from a INI-style configuration file'''
 
