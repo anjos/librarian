@@ -48,7 +48,7 @@ def setup_apikey(user_provided=None):
 
   envkey = os.environ.get('TMDB_APIKEY')
   if envkey is not None:
-    tmdb.API_KEY = user_provided
+    tmdb.API_KEY = envkey
     return
 
   if os.path.exists('.librarianrc'):
