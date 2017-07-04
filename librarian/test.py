@@ -11,7 +11,7 @@ from xml.etree import ElementTree
 import nose.tools
 from mutagen import mp4
 
-from . import tmdb, tvdb, utils
+from . import tmdb, tvdb, utils, convert
 
 tmdb.setup_apikey()
 tvdb.setup_apikey()
@@ -211,3 +211,57 @@ def test_mp4_episode_tagging():
     nose.tools.eq_(len(covr), 1)
     covr = covr[0]
     assert len(covr) != 0
+
+
+def test_ffprobe():
+
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'movie.mp4'))
+
+  data = convert.probe(filename)
+
+  nose.tools.eq_(data.tag, 'ffprobe')
+  stream = list(data.iter('stream'))
+  nose.tools.eq_(len(stream), 2)
+
+  video = [s for s in stream if s.attrib['codec_type'] == 'video'][0]
+  audio = [s for s in stream if s.attrib['codec_type'] == 'audio'][0]
+
+  # stream zero
+  nose.tools.eq_(video.attrib['codec_name'], 'h264')
+  nose.tools.eq_(video.attrib['codec_type'], 'video')
+  nose.tools.eq_(video.attrib['width'], '560')
+  nose.tools.eq_(video.attrib['height'], '320')
+  nose.tools.eq_(video.attrib['pix_fmt'], 'yuv420p')
+  assert float(video.attrib['duration']) > 5.5 #5.533333
+  nose.tools.eq_(video.attrib['bit_rate'], '465641')
+  nose.tools.eq_(video.attrib['nb_frames'], '166')
+  nose.tools.eq_(video.attrib['nb_frames'], '166')
+
+  video_disp = video.find('disposition')
+  nose.tools.eq_(video_disp.attrib['default'], '1')
+  video_tags = video.findall('tag')
+  video_lang = [t for t in video_tags if t.attrib['key'] == 'language'][0]
+  nose.tools.eq_(video_lang.attrib['value'], 'und')
+
+  # stream one
+  nose.tools.eq_(audio.attrib['codec_name'], 'aac')
+  nose.tools.eq_(audio.attrib['codec_type'], 'audio')
+  nose.tools.eq_(audio.attrib['channels'], '1')
+  assert float(audio.attrib['duration']) > 5.5 #5.568000
+  nose.tools.eq_(audio.attrib['bit_rate'], '83050')
+  nose.tools.eq_(audio.attrib['nb_frames'], '261')
+
+  audio_disp = audio.find('disposition')
+  nose.tools.eq_(audio_disp.attrib['default'], '1')
+  audio_tags = audio.findall('tag')
+  audio_lang = [t for t in audio_tags if t.attrib['key'] == 'language'][0]
+  nose.tools.eq_(audio_lang.attrib['value'], 'eng')
+
+  # container info
+  fmt = data.find('format')
+  nose.tools.eq_(fmt.attrib['filename'], filename)
+  nose.tools.eq_(fmt.attrib['nb_streams'], '2')
+  nose.tools.eq_(fmt.attrib['format_name'], 'mov,mp4,m4a,3gp,3g2,mj2')
+  assert float(fmt.attrib['duration']) > 5.5
+  nose.tools.eq_(fmt.attrib['bit_rate'], '551193')
