@@ -98,7 +98,7 @@ def main(user_input=None):
   if args['--name']: info['title'] = args['--name']
   if args['--season']: info['season'] = int(args['--season'])
   if args['--episode']: info['episode'] = int(args['--episode'])
-  info['type'] == 'episode':
+  info['type'] == 'episode' #force
 
   from ..tvdb import record_from_guess
   episode = record_from_guess(info)
