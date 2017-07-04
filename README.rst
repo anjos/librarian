@@ -1,6 +1,9 @@
-----------------------------------------
- Utilities for Organizing MP4 Libraries
-----------------------------------------
+.. image:: https://travis-ci.org/anjos/librarian.svg?branch=master
+   :target: https://travis-ci.org/anjos/librarian
+
+--------------------------------------------------------
+ The Librarian - Utilities for Organizing MP4 Libraries
+--------------------------------------------------------
 
 A bunch of utilities to organize libraries of movies and TV shows. Some bits,
 pieces and ideas were taken from `Sickbeard's mp4 automator`_.
