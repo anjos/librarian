@@ -7,7 +7,7 @@
 import os
 import sys
 import logging
-from six import configparser
+from six.moves import configparser
 
 import guessit
 
