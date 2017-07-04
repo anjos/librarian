@@ -7,7 +7,7 @@
 import os
 import sys
 import logging
-import configparser
+from six import configparser
 
 import guessit
 

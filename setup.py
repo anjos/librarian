@@ -20,6 +20,7 @@ setup(
 
     install_requires=[
       'setuptools',
+      'six',
       'docopt',
       'guessit',
       'subliminal',
