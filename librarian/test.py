@@ -436,6 +436,7 @@ def test_options_mkv_1():
 
   expected = [
       '-threads', '2',
+      '-fix_sub_duration',
       '-i', moviefile,
       '-i', os.path.splitext(moviefile)[0] + '.eng.srt',
       '-map', '0:0',
@@ -485,6 +486,7 @@ def test_options_mkv_2():
 
   expected = [
       '-threads', '3',
+      '-fix_sub_duration',
       '-i', moviefile,
       '-i', os.path.splitext(moviefile)[0] + '.eng.srt',
       '-map', '0:0',

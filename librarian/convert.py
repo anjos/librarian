@@ -511,9 +511,11 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
   # replaces qtfaststart need
   codopt += ['-movflags', '+faststart']
 
+  fix_sub_duration += ['-fix_sub_duration']
+
   # now we create the mapping specification
-  return ['-threads', str(threads)] + ['-i', infile] + inopt + mapopt + \
-      codopt + [outfile]
+  return ['-threads', str(threads)] + fix_sub_duration + \
+      ['-i', infile] + inopt + mapopt + codopt + [outfile]
 
 
 def run(options, progress=True):
