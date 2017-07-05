@@ -25,10 +25,8 @@ setup(
       'guessit',
       'subliminal',
       'mutagen',
-      'qtfaststart',
       'tmdbsimple',
       'pytvdbapi',
-      'ffmpeg_python',
       ],
 
     entry_points = {

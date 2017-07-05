@@ -8,10 +8,9 @@ dependencies:
 - docopt
 - guessit
 - mutagen
-- qtfaststart
 - tmdbsimple
 - pytvdbapi
-- ffmpeg-python
+- ffmpeg
 - subliminal
 - ipdb
 - zc.buildout

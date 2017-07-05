@@ -32,10 +32,9 @@ requirements:
     - guessit
     - subliminal
     - mutagen
-    - qtfaststart
     - tmdbsimple
     - pytvdbapi
-    - ffmpeg-python
+    - ffmpeg
 
 test:
   imports:

@@ -65,7 +65,7 @@ To download subtitles for movies and TV shows, we use `subliminal`_::
 Converting to MP4
 -----------------
 
-This is done through ffmpeg-python, with parameters optimized for better
+This is done through ffmpeg, with parameters optimized for saving CPU, better
 cross-device compatibility and streaming::
 
   $ ./bin/tomp4.py
@@ -146,7 +146,7 @@ prepare::
 Then, you can build dependencies one by one, in order::
 
   $ for py in 2.7 3.5 3.6; do conda build --python=$py deps/httplib2; done
-  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/ffmpeg-python deps/mutagen deps/qtfaststart deps/pbr deps/httplib2 deps/pytvdbapi deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache deps/subliminal; do conda build $p; done
+  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/mutagen deps/pbr deps/httplib2 deps/pytvdbapi deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache deps/subliminal; do conda build $p; done
   $ TMDB_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx conda build deps/tmdbsimple
 
 To build some of the packages, you'll need to setup environment variables with
@@ -161,7 +161,7 @@ everytime), do::
 
   $ anaconda login
   # enter credentials
-  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,ffmpeg-python,mutagen,qtfaststart,pbr,tmdbsimple,pytvdbapi,stevedore,rarfile,pysrt,enzyme,dogpile.cache,subliminal}-*.tar.bz2
+  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,mutagen,pbr,tmdbsimple,pytvdbapi,stevedore,rarfile,pysrt,enzyme,dogpile.cache,subliminal}-*.tar.bz2
 
 
 .. Place your references after this line
