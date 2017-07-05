@@ -467,42 +467,31 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
   mapopt = [] #mapping options
   codopt = [] #codec options
   inopt  = [] #input options
-  audcnt = 0 #audio stream count
-  subcnt = 0 #subtitle stream count
   extsubcnt = 1 #external subtitle stream count
   for k,v in keeping:
 
     if isinstance(k, six.string_types):
 
       if k == '__ios__': #secondary iOS stream
-        mapopt += ['-map', '0:'+ str(v['index'])]
-        codopt += ['-c:a:%d' % audcnt, 'aac', '-vbr', '5']
-        audcnt += 1
+        mapopt += ['-map', '0:%d' % v['index']]
+        codopt += ['-codec:%d' % v['index'], 'aac', '-vbr', '5']
 
       else: #subtitle SRT to bring in
         inopt += ['-i', k]
         mapopt += ['-map', str(extsubcnt) + ':' + str(v['index'])]
         extsubcnt += 1
         codopt += [
-            '-c:s:%d' % subcnt,
+            '-codec:%d' % v['index'],
             'mov_text',
             '-metadata:s:%d' % v['index'],
             'language=%s' % v['options']['language'],
             ]
-        subcnt += 1
 
     else: # normal stream to be moved or transcoded
 
-      mapopt += ['-map', '0:'+str(v['index'])]
+      mapopt += ['-map', '0:%d' % v['index']]
+      codopt += ['-codec:%d' % v['index']]
       kind = k.attrib['codec_type']
-
-      if kind == 'video': codopt += ['-c:v:0']
-      elif kind == 'audio':
-        codopt += ['-c:a:%d' % audcnt]
-        audcnt += 1
-      elif kind == 'subtitle':
-        codopt += ['-c:s:%d' % subcnt]
-        subcnt += 1
 
       if v['codec'] == 'copy':
         codopt += ['copy']

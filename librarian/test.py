@@ -434,5 +434,37 @@ def test_options_mkv_1():
   output = os.path.splitext(moviefile)[0] + '.mp4'
   options = convert.options(moviefile, output, planning)
 
-  #import ipdb; ipdb.set_trace()
-  #pass
+  # TODO: actual check it
+
+
+def test_options_mkv_2():
+
+  # organization of the test file (french original movie with default english
+  # subtitles):
+  # Stream[0] - video, h.264 codec, default
+  # Stream[1] - audio, aac codec, 6 channels, language = eng, default
+  # Stream[2] - audio, aac codec, 2 channels, language = fre
+  # Stream[3] - audio, aac codec, 2 channels, language = eng
+  # Stream[4] - subtitle, subrip codec, language = fre, default
+  # External: movie.eng.srt alongside
+  # External: movie.fre.srt alongside
+
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'mkv_2', 'probe.xml'))
+
+  # given an input file in MKV format and external SRT files, plans for MP4
+  # transcoding
+  with open(filename, 'rt') as f:
+    probe = ElementTree.fromstring(f.read())
+
+  # adjust filename as we don't know where we're installed
+  moviefile = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'mkv_2', 'movie.mkv'))
+  probe.find('format').attrib['filename'] = moviefile
+
+  planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True)
+
+  output = os.path.splitext(moviefile)[0] + '.mp4'
+  options = convert.options(moviefile, output, planning)
+
+  # TODO: actual check it
