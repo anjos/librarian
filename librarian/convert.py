@@ -552,11 +552,11 @@ def run(options, progress=True):
   while True:
     i = thread.expect_list(cpl, timeout=None)
     if i == 0: # EOF
-      print "the sub process exited"
+      print("the sub process exited")
       break
     elif i == 1:
       frame_number = thread.match.group(0)
-      print frame_number
+      print(frame_number)
       thread.close
     elif i == 2:
       #unknown_line = thread.match.group(0)
