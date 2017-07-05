@@ -7,6 +7,7 @@
 import os
 import sys
 import six
+import pexpect
 import subprocess
 import multiprocessing
 from xml.etree import ElementTree
@@ -64,7 +65,7 @@ def probe(filename):
 
   # checks ffprobe is there...
   if not os.path.exists(ffprobe):
-    raise IOError('Cannot find ffprobe exectuable at `%s\' - did you ' \
+    raise IOError('Cannot find ffprobe executable at `%s\' - did you ' \
         'install it?' % ffprobe)
 
   cmd = [
@@ -468,7 +469,7 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
   codopt = [] #codec options
   inopt  = [] #input options
   extsubcnt = 1 #external subtitle stream count
-  for k,v in keeping:
+  for k,v in sorted_planning:
 
     if isinstance(k, six.string_types):
 
@@ -513,3 +514,51 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
   # now we create the mapping specification
   return ['-threads', str(threads)] + ['-i', infile] + inopt + mapopt + \
       codopt + [outfile]
+
+
+def run(options, progress=True):
+  '''Runs ffmpeg taking into consideration the input options
+
+  Uses ``pexpect`` to capture ffmpeg output and display progress
+
+
+  Parameters:
+
+    options (list): A list of options for ffmpeg as returned by
+      :py:func:`options`
+
+    progress (:py:class:`bool`, optional): A flag indicating if we should be
+      verbose (output progress bar) or not
+
+
+  Returns:
+
+    int: zero, in case of a successful execution. Different than zero otherwise
+
+  '''
+
+  ffmpeg = os.path.join(os.path.dirname(sys.executable), 'ffmpeg')
+
+  # checks ffmpeg is there...
+  if not os.path.exists(ffmpeg):
+    raise IOError('Cannot find ffmpeg executable at `%s\' - did you ' \
+        'install it?' % ffmpeg)
+
+  cmd = [ffmpeg] + options
+  logger.info('Executing `%s\'...' % ' '.join(cmd))
+  thread = pexpect.spawn(cmd)
+  cpl = thread.compile_pattern_list([pexpect.EOF, "frame= *\d+", '(.+)'])
+
+  while True:
+    i = thread.expect_list(cpl, timeout=None)
+    if i == 0: # EOF
+      print "the sub process exited"
+      break
+    elif i == 1:
+      frame_number = thread.match.group(0)
+      print frame_number
+      thread.close
+    elif i == 2:
+      #unknown_line = thread.match.group(0)
+      #print unknown_line
+      pass

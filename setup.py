@@ -27,6 +27,8 @@ setup(
       'mutagen',
       'tmdbsimple',
       'pytvdbapi',
+      'pexpect',
+      'tqdm',
       ],
 
     entry_points = {

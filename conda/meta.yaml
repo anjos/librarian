@@ -35,6 +35,8 @@ requirements:
     - tmdbsimple
     - pytvdbapi
     - ffmpeg
+    - pexpect
+    - tqdm
 
 test:
   imports:

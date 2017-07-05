@@ -432,9 +432,25 @@ def test_options_mkv_1():
   planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True)
 
   output = os.path.splitext(moviefile)[0] + '.mp4'
-  options = convert.options(moviefile, output, planning)
+  options = convert.options(moviefile, output, planning, threads=2)
 
-  # TODO: actual check it
+  expected = [
+      '-threads', '2',
+      '-i', moviefile,
+      '-i', os.path.splitext(moviefile)[0] + '.eng.srt',
+      '-map', '0:0',
+      '-map', '0:1',
+      '-map', '0:2',
+      '-map', '1:3',
+      '-codec:0', 'copy',
+      '-codec:1', 'aac', '-vbr', '4',
+      '-codec:2', 'copy',
+      '-codec:3', 'mov_text', '-metadata:s:3', 'language=eng',
+      '-movflags', '+faststart',
+      os.path.splitext(moviefile)[0] + '.mp4',
+      ]
+
+  nose.tools.eq_(options, expected)
 
 
 def test_options_mkv_2():
@@ -465,6 +481,26 @@ def test_options_mkv_2():
   planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True)
 
   output = os.path.splitext(moviefile)[0] + '.mp4'
-  options = convert.options(moviefile, output, planning)
+  options = convert.options(moviefile, output, planning, threads=3)
 
-  # TODO: actual check it
+  expected = [
+      '-threads', '3',
+      '-i', moviefile,
+      '-i', os.path.splitext(moviefile)[0] + '.eng.srt',
+      '-map', '0:0',
+      '-map', '0:1',
+      '-map', '0:2',
+      '-map', '0:3',
+      '-map', '1:4',
+      '-map', '0:5',
+      '-codec:0', 'copy',
+      '-codec:1', 'copy',
+      '-codec:2', 'copy',
+      '-codec:3', 'copy',
+      '-codec:4', 'mov_text', '-metadata:s:4', 'language=eng',
+      '-codec:5', 'mov_text', '-metadata:s:5', 'language=fre',
+      '-movflags', '+faststart',
+      os.path.splitext(moviefile)[0] + '.mp4',
+      ]
+
+  nose.tools.eq_(options, expected)
