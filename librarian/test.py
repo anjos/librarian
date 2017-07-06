@@ -528,7 +528,8 @@ def test_run_progress():
   options = ['-i', filename, '-acodec', 'copy', '-vcodec', 'ffv1', tmpname]
 
   try:
-    convert.run(options, int(video.attrib['nb_frames']))
+    retcode = convert.run(options, int(video.attrib['nb_frames']))
+    nose.tools.eq_(retcode, 0)
     assert os.path.exists(tmpname)
   finally:
     # always delete temporary file in the end
@@ -555,7 +556,8 @@ def test_run_no_progress():
   options = ['-i', filename, '-acodec', 'copy', '-vcodec', 'ffv1', tmpname]
 
   try:
-    convert.run(options)
+    retcode = convert.run(options)
+    nose.tools.eq_(retcode, 0)
     assert os.path.exists(tmpname)
   finally:
     # always delete temporary file in the end
