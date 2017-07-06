@@ -5,8 +5,10 @@
 
 
 import os
+import re
 import sys
 import six
+import tqdm
 import pexpect
 import subprocess
 import multiprocessing
@@ -518,7 +520,7 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
       ['-i', infile] + inopt + mapopt + codopt + [outfile]
 
 
-def run(options, progress=True):
+def run(options, progress=0):
   '''Runs ffmpeg taking into consideration the input options
 
   Uses ``pexpect`` to capture ffmpeg output and display progress with ``tqdm``.
@@ -529,8 +531,10 @@ def run(options, progress=True):
     options (list): A list of options for ffmpeg as returned by
       :py:func:`options`
 
-    progress (:py:class:`bool`, optional): A flag indicating if we should be
-      verbose (output progress bar) or not
+    progress (:py:class:`int`, optional): If set to a value greater than zero,
+      then it is considered to correspond to the total number of frames (in the
+      main video sequence) to process. A progress bar will then be displayed
+      showing the progress with ``tqdm``.
 
 
   Returns:
@@ -548,19 +552,29 @@ def run(options, progress=True):
 
   cmd = [ffmpeg] + options
   logger.info('Executing `%s\'...' % ' '.join(cmd))
-  thread = pexpect.spawn(cmd)
-  cpl = thread.compile_pattern_list([pexpect.EOF, "frame= *\d+", '(.+)'])
+  child = pexpect.spawn(' '.join(cmd))
 
-  while True:
-    i = thread.expect_list(cpl, timeout=None)
-    if i == 0: # EOF
-      print("the sub process exited")
-      break
-    elif i == 1:
-      frame_number = thread.match.group(0)
-      print(frame_number)
-      thread.close
-    elif i == 2:
-      #unknown_line = thread.match.group(0)
-      #print unknown_line
-      pass
+  else_re = re.compile(b'(?P<all>\s*\S+.*)')
+  pattern_list = [pexpect.EOF, else_re]
+
+  if progress > 0:
+    frame_re = re.compile(b'frame=\s*(?P<frame>\d+)\s+.*\s+speed=\s*(?P<speed>\d+(\.\d+)?)x\s*')
+    pattern_list.insert(1, frame_re)
+
+  cpl = child.compile_pattern_list(pattern_list)
+
+  with tqdm.tqdm(total=progress, disable=not progress, unit='frames') as pbar:
+    previous_frame = 0
+    while True:
+      i = child.expect_list(cpl, timeout=None)
+      if i == 0: # EOF
+        child.close()
+        logger.debug("Process exited with status %d", child.exitstatus)
+        return child.exitstatus
+      elif i == 1 and progress > 0: #frame_re
+        m = child.match.groupdict()
+        pbar.set_postfix(speed=m['speed'].decode()+'x')
+        pbar.update(int(m['frame'])-previous_frame)
+        previous_frame = int(m['frame'])
+      elif i == 2 or (i == 1 and progress <= 0): #else_re
+        logger.debug("ffmpeg: %s", child.match.string)

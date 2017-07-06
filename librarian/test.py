@@ -506,3 +506,57 @@ def test_options_mkv_2():
       ]
 
   nose.tools.eq_(options, expected)
+
+
+def test_run_progress():
+
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'movie.mp4'))
+  #filename = '/Users/andre/Downloads/SampleVideo_1280x720_30mb.mp4'
+
+  probe = convert.probe(filename)
+  streams = list(probe.iter('stream'))
+  video = [k for k in streams if k.attrib['codec_type'] == 'video'][0]
+
+  # creates a temporary filename
+  tmpout = tempfile.NamedTemporaryFile(suffix='.mkv')
+  tmpname = tmpout.name
+  del tmpout
+  if os.path.exists(tmpname): os.unlink(tmpname)
+
+  # tests we can run our process spawner and track progress
+  options = ['-i', filename, '-acodec', 'copy', '-vcodec', 'ffv1', tmpname]
+
+  try:
+    convert.run(options, int(video.attrib['nb_frames']))
+    assert os.path.exists(tmpname)
+  finally:
+    # always delete temporary file in the end
+    if os.path.exists(tmpname): os.unlink(tmpname)
+
+
+def test_run_no_progress():
+
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'movie.mp4'))
+  #filename = '/Users/andre/Downloads/SampleVideo_1280x720_30mb.mp4'
+
+  probe = convert.probe(filename)
+  streams = list(probe.iter('stream'))
+  video = [k for k in streams if k.attrib['codec_type'] == 'video'][0]
+
+  # creates a temporary filename
+  tmpout = tempfile.NamedTemporaryFile(suffix='.mkv')
+  tmpname = tmpout.name
+  del tmpout
+  if os.path.exists(tmpname): os.unlink(tmpname)
+
+  # tests we can run our process spawner and track progress
+  options = ['-i', filename, '-acodec', 'copy', '-vcodec', 'ffv1', tmpname]
+
+  try:
+    convert.run(options)
+    assert os.path.exists(tmpname)
+  finally:
+    # always delete temporary file in the end
+    if os.path.exists(tmpname): os.unlink(tmpname)
