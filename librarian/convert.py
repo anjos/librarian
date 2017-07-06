@@ -511,7 +511,7 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
   # replaces qtfaststart need
   codopt += ['-movflags', '+faststart']
 
-  fix_sub_duration += ['-fix_sub_duration']
+  fix_sub_duration = ['-fix_sub_duration']
 
   # now we create the mapping specification
   return ['-threads', str(threads)] + fix_sub_duration + \
@@ -521,7 +521,7 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
 def run(options, progress=True):
   '''Runs ffmpeg taking into consideration the input options
 
-  Uses ``pexpect`` to capture ffmpeg output and display progress
+  Uses ``pexpect`` to capture ffmpeg output and display progress with ``tqdm``.
 
 
   Parameters:
