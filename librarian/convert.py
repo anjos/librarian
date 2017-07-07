@@ -97,13 +97,68 @@ def _get_streams(streams, ctype):
 def _get_default_stream(streams, ctype):
   '''Returns the default stream of a certain type - first default'''
 
+  assert streams
+
   r = [s for s in streams if s.find('disposition').attrib['default'] == '1']
+
+  if len(r) == 0:
+    logger.warn('No %s streams tagged with "default" - returning first' % ctype)
+    return streams[0]
 
   if len(r) > 1:
     logger.warn('More than one %s stream found - keeping first only' % ctype)
     # we're only interested in the "default" <ctype> stream
 
   return r[0]
+
+
+def _copy_or_transcode(stream, name, codec, settings):
+  '''Decides if the stream will be copied or transcoded based on its settings
+
+  This function will check if the stream will be copied or transcoded based on
+  its current settings. It will first compare the currently used codec with
+  ``name`` and then set the ``codec`` key in ``settings`` to either ``copy``,
+  in case the check is ``True`` or ``codec`` in case it is false. Info messages
+  will be logged all the way.
+
+
+  Parameters:
+
+    stream (xml.etree.Element): An XML element corresponding to the stream to
+      check
+
+    name (str): The bit of string to check on the currently used codec name.
+      For example, this may be ``aac`` or ``264``. It does not need to be the
+      full codec name as that is normally changing depending on how you
+      compiled ffmpeg.
+
+    codec (str): This is a keyword that will be used later and defines the
+      codec we actually want for this stream
+
+    settings (dict): This is the dictionary that determines the fate of this
+      stream on the overall transcoding plan.
+
+  '''
+
+  if name not in stream.attrib['codec_name']:
+    logger.info('%s stream (index=%s, language=%s) is encoded with ' \
+        'codec=%s - transcoding stream to %s',
+        stream.attrib['codec_type'].capitalize(),
+        stream.attrib['index'],
+        _get_stream_language(stream),
+        stream.attrib['codec_name'],
+        codec)
+    settings['codec'] = codec
+
+  else: #copy whatever
+    logger.info('%s stream (index=%s, language=%s) is already encoded ' \
+        'with codec=%s - copying stream',
+        stream.attrib['codec_type'].capitalize(),
+        stream.attrib['index'],
+        _get_stream_language(stream),
+        codec)
+    logger.info('Default audio is encoded in AAC - copying stream')
+    settings['codec'] = 'copy'
 
 
 def _plan_video(streams, mapping):
@@ -121,15 +176,9 @@ def _plan_video(streams, mapping):
   video = _get_default_stream(_get_streams(streams, 'video'), 'video')
 
   mapping[video]['index'] = 0 #video is always first
+  mapping[video]['disposition'] = 'default' #video should be shown by default
 
-  # if the video is not in h264 format, then we'll convert it
-  if '264' not in video.attrib['codec_name']:
-    logger.info('Video is encoded in %s - transcoding stream to H.264',
-        video.attrib['codec_name'])
-    mapping[video]['codec'] = 'h264'
-  else: #copy whatever
-    logger.info('Video is encoded in H.264 - copying stream')
-    mapping[video]['codec'] = 'copy'
+  _copy_or_transcode(video, '264', 'h264', mapping[video])
 
 
 def _get_stream_language(stream):
@@ -142,6 +191,24 @@ def _get_stream_language(stream):
   return 'und' #undefined, ffprobe standard
 
 
+def _get_default_audio_stream(streams, languages):
+  '''Tries to get the default audio stream respecting the language setting'''
+
+  assert languages
+
+  for s in streams:
+    for l in languages:
+      if l == _get_stream_language(s):
+        if l != languages[0]:
+          logger.warn('Could not find audio stream in ``%s\' - ' \
+              'using language `%s\' instead', languages[0], l)
+        return s
+
+  # if you get to this point, there is no audio stream that actually statisfies
+  # your request. we then consider the "default" audio stream to be the one
+  return _get_default_stream(audio_streams, 'audio')
+
+
 def _plan_audio(streams, languages, ios_audio, mapping):
   '''Creates a transcoding plan for audio streams
 
@@ -151,15 +218,14 @@ def _plan_audio(streams, languages, ios_audio, mapping):
       representing audio streams. There is at least one in every video file,
       but there may be many
 
-    languages (list, tuple): The list of secondary audio and subtitle streams
-      to retain, in order of preference. Languages should be encoded using a
+    languages (list, tuple): The list of audio streams to retain according to
+      language and in order of preference. Languages should be encoded using a
       3-character string (ISO 639 language codes). The audio languages that are
       available on the stream will be selected and organized according to this
-      preference. The main audio stream of the file will be kept and will make
-      up audio[0] and audio[1] (if ``ios_audio`` is set to ``True``). The
-      following audio tracks will be organized as defined. For subtitle tracks,
-      all tracks will be off by default. The order of tracks is defined by this
-      variable.
+      preference. The main audio stream of the file will be considered to be
+      the first language and will make up audio[0] (and audio[1] if
+      ``ios_audio`` is set to ``True``). The following audio tracks will be
+      organized as defined.
 
     ios_audio (:py:class:`bool`, optional): If set to ``True``, then audio[1]
       will contain a stereo AC3 encoded track which is suitable to play on iOS
@@ -177,21 +243,14 @@ def _plan_audio(streams, languages, ios_audio, mapping):
   audio_streams = _get_streams(streams, 'audio')
 
   # now, let's handle the default audio bands
-  default_audio = _get_default_stream(audio_streams, 'audio')
-  mapping[default_audio] = {'index': 1}
+  default_audio = _get_default_audio_stream(audio_streams, languages)
   default_lang = _get_stream_language(default_audio)
   default_channels = int(default_audio.attrib['channels'])
+  mapping[default_audio]['index'] = 1
+  mapping[default_audio]['disposition'] = 'default' #audible by default
 
   # if the default audio is already in AAC, just copy it
-  if 'aac' not in default_audio.attrib['codec_name']:
-    logger.info('Default audio stream is encoded in %s - transcoding ' \
-        'stream to AAC, profile = LC, channels = %d, language = %s',
-        default_audio.attrib['codec_name'], default_channels, default_lang)
-    mapping[default_audio]['index'] = 1
-    mapping[default_audio]['codec'] = 'aac'
-  else: #copy whatever
-    logger.info('Default audio is encoded in AAC - copying stream')
-    mapping[default_audio]['codec'] = 'copy'
+  _copy_or_transcode(default_audio, 'aac', 'aac', mapping[default_audio])
 
   secondary_audio = [s for s in audio_streams if s != default_audio]
 
@@ -207,14 +266,8 @@ def _plan_audio(streams, languages, ios_audio, mapping):
           int(s.attrib['channels']) == 2:
         ios_stream = s #found it
         mapping[s]['index'] = 2
-        if 'aac' not in s.attrib['codec_name']:
-          logger.info('iOS audio stream is encoded in %s - transcoding ' \
-              'stream to AAC, profile = LC, channels = 2, language = %s',
-              default_audio.attrib['codec_name'], default_lang)
-          mapping[s]['codec'] = 'aac'
-        else: #copy whatever
-          logger.info('iOS audio is encoded in AAC - copying stream')
-          mapping[s]['codec'] = 'copy'
+        mapping[s]['disposition'] = 'none' # not audible by default
+        _copy_or_transcode(s, 'aac', 'aac', mapping[s])
 
     # if, at this point, ios_stream was not found, transcode from the default
     # audio stream
@@ -225,6 +278,7 @@ def _plan_audio(streams, languages, ios_audio, mapping):
       mapping['__ios__'] = {'original': default_audio}
       mapping['__ios__']['index'] = 2
       mapping['__ios__']['codec'] = 'aac'
+      mapping['__ios__']['disposition'] = 'none'
 
   else:
     logger.info('Skipping creation of optimized iOS audio track')
@@ -251,18 +305,10 @@ def _plan_audio(streams, languages, ios_audio, mapping):
       if lang == k:
         # incorporate stream into the output file
         used_stream = s
-        mapping[s] = {'index': curr_index}
+        mapping[s]['index'] = curr_index
+        mapping[s]['disposition'] = 'none' # not audible by default
         curr_index += 1
-        if 'aac' not in s.attrib['codec_name']:
-          channels = int(s.attrib['channels'])
-          logger.info('Audio stream (language=%s, index=%d) is encoded in %s ' \
-              '- transcoding stream to AAC, profile = LC, channels = %d',
-              lang, curr_index-1, s.attrib['codec_name'], channels)
-          mapping[s]['codec'] = 'aac'
-        else: #copy whatever
-          logger.info('Audio stream (language=%s, index=%d) is encoded in ' \
-              'AAC - copying stream', lang, curr_index-1)
-          mapping[s]['codec'] = 'copy'
+        _copy_or_transcode(s, 'aac', 'aac', mapping[s])
 
     # remove any used stream so we don't iterate over it again
     secondary_audio = [s for s in secondary_audio if s != used_stream]
@@ -271,11 +317,10 @@ def _plan_audio(streams, languages, ios_audio, mapping):
     secondary_audio = [s for s in secondary_audio \
         if _get_stream_language(s) != k]
 
-  return default_lang
 
-
-def _plan_subtitles(streams, filename, default_language, languages, mapping):
+def _plan_subtitles(streams, filename, languages, mapping, show=None):
   '''Creates a transcoding plan for subtitle streams
+
 
   Parameters:
 
@@ -286,20 +331,17 @@ def _plan_subtitles(streams, filename, default_language, languages, mapping):
       this path to potentially discover subtitles we will incorporate in the
       final MP4 file. Subtitles are encoded using ``mov_text``.
 
-    default_language: The default movie language of the original movie file.
-      This is a 3-character string following the ISO 639 specifications.
-
-    languages (list, tuple): The list of secondary audio and subtitle streams
-      to retain, in order of preference. Languages should be encoded using a
-      3-character string (ISO 639 language codes). The audio languages that are
-      available on the stream will be selected and organized according to this
-      preference. The main audio stream of the file will be kept and will make
-      up audio[0] and audio[1] (if ``ios_audio`` is set to ``True``). The
-      following audio tracks will be organized as defined. For subtitle tracks,
-      all tracks will be off by default. The order of tracks is defined by this
-      variable.
+    languages (list, tuple): The list of all subtitle streams to retain
+      according to language, in order of preference. Languages should be
+      encoded using a 3-character string (ISO 639 language codes). For subtitle
+      tracks, all tracks will be off by default (unless ``show`` is set). The
+      order of tracks is defined by this variable.
 
     mapping (dict): Where to place the planning
+
+    show (:py:class:`str`, optional): The 3-character ISO 639 specification of
+      a subtitle language to show by default. If not set, then don't display
+      any subtitle by default.
 
   '''
 
@@ -312,10 +354,10 @@ def _plan_subtitles(streams, filename, default_language, languages, mapping):
   # type SRT alongside the original file. in such a case we import it into a
   # mov_text subtitle, setting the language adequately.
 
-  # re-arrange the languages so the default language comes first, if a subtitle
-  # for it exists.
-  languages = [k for k in languages if k != default_language]
-  languages = [default_language] + languages
+  # re-arrange the languages so the ``show`` language comes first and the
+  # default language next. other languages come later, with preserved order
+  if show is not None:
+    languages = _uniq([show] + languages)
   curr_index = len([(k,v) for k,v in mapping.items() if v])
 
   for k in languages:
@@ -325,12 +367,10 @@ def _plan_subtitles(streams, filename, default_language, languages, mapping):
       lang = _get_stream_language(s)
       if lang == k:
         # incorporate stream into the output file
-        mapping[s] = {'index': curr_index}
+        mapping[s]['index'] = curr_index
+        mapping[s]['disposition'] = 'default' if show == k else 'none'
         curr_index += 1
-        if s.attrib['codec_name'] != 'mov_text':
-          mapping[s]['codec'] = 'mov_text'
-        else: #copy whatever
-          mapping[s]['codec'] = 'copy'
+        _copy_or_transcode(s, 'mov_text', 'mov_text', mapping[s])
         break #go to the next language, don't pay attention to SRT files
 
       # if you get at this point, it is because we never entered the if clause
@@ -339,8 +379,9 @@ def _plan_subtitles(streams, filename, default_language, languages, mapping):
       if os.path.exists(candidate):
         mapping[candidate] = {'index': curr_index}
         curr_index += 1
+        mapping[candidate]['disposition'] = 'default' if show == k else 'none'
         mapping[candidate]['codec'] = 'mov_text'
-        mapping[candidate]['options'] = {'language': k}
+        mapping[candidate]['language'] = k
 
     # remove any used stream so we don't iterate over it again
     subtitle_streams = [s for s in subtitle_streams if s != used_stream]
@@ -369,7 +410,7 @@ def _uniq(seq, idfun=None):
   return result
 
 
-def plan(probe, languages, ios_audio=True):
+def plan(probe, languages, default_subtitle_language=None, ios_audio=True):
   '''Plans the pipeline to convert the input video into a standardised mp4
 
   This function can plan the conversion of a movie or TV show episode in a
@@ -423,6 +464,10 @@ def plan(probe, languages, ios_audio=True):
       all tracks will be off by default. The order of tracks is defined by this
       variable.
 
+    default_subtitle_language (:py:class:`str`, optional): The 3-character ISO
+      639 specification of a subtitle language to show by default. If not set,
+      then don't display any subtitle by default.
+
     ios_audio (:py:class:`bool`, optional): If set to ``True``, then audio[1]
       will contain a stereo AC3 encoded track which is suitable to play on iOS
       devices
@@ -443,11 +488,11 @@ def plan(probe, languages, ios_audio=True):
   for s in streams: mapping[s] = {}
 
   _plan_video(streams, mapping)
-
-  default_language = _plan_audio(streams, languages, ios_audio, mapping)
+  _plan_audio(streams, languages, ios_audio, mapping)
 
   filename = probe.find('format').attrib['filename']
-  _plan_subtitles(streams, filename, default_language, languages, mapping)
+  _plan_subtitles(streams, filename, languages, mapping,
+      show=default_subtitle_language)
 
   # return information only for streams that will be used
   return mapping
@@ -485,23 +530,36 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
 
       if k == '__ios__': #secondary iOS stream
         mapopt += ['-map', '0:%d' % v['index']]
-        codopt += ['-codec:%d' % v['index'], 'aac', '-vbr', '5']
+        codopt += [
+            '-disposition:%d' % v['index'], v['disposition'],
+            '-codec:%d' % v['index'], 'aac', '-vbr', '4',
+            # converting from surround (5.1) - this formula comes from:
+            # http://atsc.org/wp-content/uploads/2015/03/A52-201212-17.pdf
+            '-ac', '2', '-af', 'pan=stereo|FL < 1.0*FL + 0.707*FC + ' \
+                '0.707*BL|FR < 1.0*FR + 0.707*FC + 0.707*BR',
+            '-metadata:s:%d' % v['index'],
+            'language=%s' % _get_stream_language(v['original']),
+            ]
 
       else: #subtitle SRT to bring in
         inopt += ['-i', k]
         mapopt += ['-map', str(extsubcnt) + ':' + str(v['index'])]
         extsubcnt += 1
         codopt += [
+            '-disposition:%d' % v['index'], v['disposition'],
             '-codec:%d' % v['index'],
             'mov_text',
             '-metadata:s:%d' % v['index'],
-            'language=%s' % v['options']['language'],
+            'language=%s' % v['language'],
             ]
 
     else: # normal stream to be moved or transcoded
 
       mapopt += ['-map', '0:%d' % v['index']]
-      codopt += ['-codec:%d' % v['index']]
+      codopt += [
+          '-disposition:%d' % v['index'], v['disposition'],
+          '-codec:%d' % v['index'],
+          ]
       kind = k.attrib['codec_type']
 
       if v['codec'] == 'copy':

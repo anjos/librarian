@@ -291,7 +291,8 @@ def test_planning_mkv_1():
       os.path.join('data', 'mkv_1', 'movie.mkv'))
   probe.find('format').attrib['filename'] = moviefile
 
-  planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True)
+  planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True,
+      default_subtitle_language='eng')
   keeping = [(k,v) for k,v in planning.items() if v]
   deleting = [(k,v) for k,v in planning.items() if not v]
   sorted_planning = sorted(keeping, key=lambda k: k[1]['index'])
@@ -306,6 +307,7 @@ def test_planning_mkv_1():
   nose.tools.eq_(video.attrib['codec_type'], 'video')
   nose.tools.eq_(opts['index'], 0)
   nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'default')
 
   # this should be the 2-channel audio stream, not in AAC format
   # even if ios_audio is ``True``, we should not have a second stream because
@@ -316,19 +318,22 @@ def test_planning_mkv_1():
   nose.tools.eq_(audio.attrib['channels'], '2')
   nose.tools.eq_(opts['index'], 1)
   nose.tools.eq_(opts['codec'], 'aac')
+  nose.tools.eq_(opts['disposition'], 'default')
 
   # the 3rd stream should be the english dubbed version, it is AAC encoded
   audio, opts = sorted_planning[2]
   nose.tools.eq_(audio.attrib['codec_type'], 'audio')
   nose.tools.eq_(opts['index'], 2)
   nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'none')
 
   # the 4th stream should be an external SRT subtitle in english
   subt, opts = sorted_planning[3]
   assert isinstance(subt, six.string_types)
   nose.tools.eq_(opts['index'], 3)
   nose.tools.eq_(opts['codec'], 'mov_text')
-  nose.tools.eq_(opts['options']['language'], 'eng')
+  nose.tools.eq_(opts['language'], 'eng')
+  nose.tools.eq_(opts['disposition'], 'default')
 
 
 def test_planning_mkv_2():
@@ -369,6 +374,7 @@ def test_planning_mkv_2():
   nose.tools.eq_(video.attrib['codec_type'], 'video')
   nose.tools.eq_(opts['index'], 0)
   nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'default')
 
   # this should be the 6-channel audio stream, in AAC
   audio, opts = sorted_planning[1]
@@ -377,6 +383,7 @@ def test_planning_mkv_2():
   nose.tools.eq_(audio.attrib['channels'], '6')
   nose.tools.eq_(opts['index'], 1)
   nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'default')
 
   # the 3rd stream should be iOS stream, which will be moved from 4rd position
   audio, opts = sorted_planning[2]
@@ -385,6 +392,7 @@ def test_planning_mkv_2():
   nose.tools.eq_(audio.attrib['index'], '3')
   nose.tools.eq_(opts['index'], 2)
   nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'none')
 
   # the 4th stream should be audio in french
   audio, opts = sorted_planning[3]
@@ -392,18 +400,21 @@ def test_planning_mkv_2():
   nose.tools.eq_(audio.attrib['index'], '2')
   nose.tools.eq_(opts['index'], 3)
   nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'none')
 
   # the 5th stream should be an external SRT subtitle in english
   subt, opts = sorted_planning[4]
   assert isinstance(subt, six.string_types)
   nose.tools.eq_(opts['index'], 4)
   nose.tools.eq_(opts['codec'], 'mov_text')
-  nose.tools.eq_(opts['options']['language'], 'eng')
+  nose.tools.eq_(opts['language'], 'eng')
+  nose.tools.eq_(opts['disposition'], 'none')
 
   # the 6th stream should be an internal SRT subtitle in french
   subt, opts = sorted_planning[5]
   nose.tools.eq_(opts['index'], 5)
   nose.tools.eq_(opts['codec'], 'mov_text')
+  nose.tools.eq_(opts['disposition'], 'none')
 
 
 def test_options_mkv_1():
@@ -429,7 +440,8 @@ def test_options_mkv_1():
       os.path.join('data', 'mkv_1', 'movie.mkv'))
   probe.find('format').attrib['filename'] = moviefile
 
-  planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True)
+  planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True,
+      default_subtitle_language='eng')
 
   output = os.path.splitext(moviefile)[0] + '.mp4'
   options = convert.options(moviefile, output, planning, threads=2)
@@ -443,10 +455,15 @@ def test_options_mkv_1():
       '-map', '0:1',
       '-map', '0:2',
       '-map', '1:3',
+      '-disposition:0', 'default',
       '-codec:0', 'copy',
+      '-disposition:1', 'default',
       '-codec:1', 'aac', '-vbr', '4',
+      '-disposition:2', 'none',
       '-codec:2', 'copy',
-      '-codec:3', 'mov_text', '-metadata:s:3', 'language=eng',
+      '-disposition:3', 'default',
+      '-codec:3', 'mov_text',
+      '-metadata:s:3', 'language=eng',
       '-movflags', '+faststart',
       os.path.splitext(moviefile)[0] + '.mp4',
       ]
@@ -495,12 +512,20 @@ def test_options_mkv_2():
       '-map', '0:3',
       '-map', '1:4',
       '-map', '0:5',
+      '-disposition:0', 'default',
       '-codec:0', 'copy',
+      '-disposition:1', 'default',
       '-codec:1', 'copy',
+      '-disposition:2', 'none',
       '-codec:2', 'copy',
+      '-disposition:3', 'none',
       '-codec:3', 'copy',
-      '-codec:4', 'mov_text', '-metadata:s:4', 'language=eng',
-      '-codec:5', 'mov_text', '-metadata:s:5', 'language=fre',
+      '-disposition:4', 'none',
+      '-codec:4', 'mov_text',
+      '-metadata:s:4', 'language=eng',
+      '-disposition:5', 'none',
+      '-codec:5', 'mov_text',
+      '-metadata:s:5', 'language=fre',
       '-movflags', '+faststart',
       os.path.splitext(moviefile)[0] + '.mp4',
       ]
