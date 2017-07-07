@@ -636,7 +636,11 @@ def run(options, progress=0):
       i = child.expect_list(cpl, timeout=None)
       if i == 0: # EOF
         child.close()
-        logger.debug("Process exited with status %d", child.exitstatus)
+        if child.exitstatus != 0:
+          logger.error("Command %s" % ' '.join(cmd))
+          logger.error("Exited with status %d", child.exitstatus)
+        else:
+          logger.debug("Process exited with status %d", child.exitstatus)
         return child.exitstatus
       elif i == 1 and progress > 0: #frame_re
         m = child.match.groupdict()
