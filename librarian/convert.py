@@ -88,6 +88,24 @@ def probe(filename):
   return ElementTree.fromstring(data)
 
 
+def _get_streams(streams, ctype):
+  '''Returns streams for a particular codec type'''
+
+  return [k for k in streams if k.attrib['codec_type'] == ctype]
+
+
+def _get_default_stream(streams, ctype):
+  '''Returns the default stream of a certain type - first default'''
+
+  r = [s for s in streams if s.find('disposition').attrib['default'] == '1']
+
+  if len(r) > 1:
+    logger.warn('More than one %s stream found - keeping first only' % ctype)
+    # we're only interested in the "default" <ctype> stream
+
+  return r[0]
+
+
 def _plan_video(streams, mapping):
   '''Creates a transcoding plan for the (only?) default video stream
 
@@ -100,13 +118,7 @@ def _plan_video(streams, mapping):
 
   '''
 
-  if len(streams) == 1:
-    video = streams[0]
-  else:
-    logger.warn('More than one video stream found - keeping first only')
-    # we're only interested in the "default" video stream
-    video = [s for s in stream if s.find('disposition').attrib['default'] == 1]
-    video = video[0] #we drop all other video streams
+  video = _get_default_stream(_get_streams(streams, 'video'), 'video')
 
   mapping[video]['index'] = 0 #video is always first
 
@@ -162,16 +174,15 @@ def _plan_audio(streams, languages, ios_audio, mapping):
 
   '''
 
-  # now, let's handle the default audio bands
-  default_audio = [s for s in streams \
-      if s.find('disposition').attrib['default'] == "1"]
-  default_audio = default_audio[0] #first audio stream is the default
-  mapping[default_audio] = {'index': 1}
+  audio_streams = _get_streams(streams, 'audio')
 
+  # now, let's handle the default audio bands
+  default_audio = _get_default_stream(audio_streams, 'audio')
+  mapping[default_audio] = {'index': 1}
   default_lang = _get_stream_language(default_audio)
+  default_channels = int(default_audio.attrib['channels'])
 
   # if the default audio is already in AAC, just copy it
-  default_channels = int(default_audio.attrib['channels'])
   if 'aac' not in default_audio.attrib['codec_name']:
     logger.info('Default audio stream is encoded in %s - transcoding ' \
         'stream to AAC, profile = LC, channels = %d, language = %s',
@@ -182,7 +193,7 @@ def _plan_audio(streams, languages, ios_audio, mapping):
     logger.info('Default audio is encoded in AAC - copying stream')
     mapping[default_audio]['codec'] = 'copy'
 
-  secondary_audio = [s for s in streams if s != default_audio]
+  secondary_audio = [s for s in audio_streams if s != default_audio]
 
   ios_stream = None
 
@@ -269,7 +280,7 @@ def _plan_subtitles(streams, filename, default_language, languages, mapping):
   Parameters:
 
     streams (list): A list of :py:class:`xml.etree.ElementTree` objects
-      representing subtitle streams. There may be none
+      representing all streams available in the file.
 
     filename (str): Full path leading to the movie original filename. We use
       this path to potentially discover subtitles we will incorporate in the
@@ -292,6 +303,8 @@ def _plan_subtitles(streams, filename, default_language, languages, mapping):
 
   '''
 
+  subtitle_streams = _get_streams(streams, 'subtitle')
+
   # finally, we handle the subtitles, keep language priority and suppress any
   # other languages. there are 2 options here: (1) the stream is encoded within
   # the file. in such a case, we leave it as is if already in mov_text type,
@@ -307,7 +320,7 @@ def _plan_subtitles(streams, filename, default_language, languages, mapping):
 
   for k in languages:
     used_stream = None
-    for s in streams:
+    for s in subtitle_streams:
       tags = s.findall('tag')
       lang = _get_stream_language(s)
       if lang == k:
@@ -330,10 +343,11 @@ def _plan_subtitles(streams, filename, default_language, languages, mapping):
         mapping[candidate]['options'] = {'language': k}
 
     # remove any used stream so we don't iterate over it again
-    streams = [s for s in streams if s != used_stream]
+    subtitle_streams = [s for s in subtitle_streams if s != used_stream]
 
     # remove any other stream that matches the same language
-    streams = [s for s in streams if _get_stream_language(s) != k]
+    subtitle_streams = [s for s in subtitle_streams \
+        if _get_stream_language(s) != k]
 
 
 def _uniq(seq, idfun=None):
@@ -428,18 +442,12 @@ def plan(probe, languages, ios_audio=True):
   streams = list(probe.iter('stream'))
   for s in streams: mapping[s] = {}
 
-  def _get_streams(streams, ctype):
-    '''Returns streams for a particular codec type'''
-    return [k for k in streams if k.attrib['codec_type'] == ctype]
+  _plan_video(streams, mapping)
 
-  _plan_video(_get_streams(streams, 'video'), mapping)
-
-  default_language = _plan_audio(_get_streams(streams, 'audio'),
-      languages, ios_audio, mapping)
+  default_language = _plan_audio(streams, languages, ios_audio, mapping)
 
   filename = probe.find('format').attrib['filename']
-  _plan_subtitles(_get_streams(streams, 'subtitle'), filename,
-      default_language, languages, mapping)
+  _plan_subtitles(streams, filename, default_language, languages, mapping)
 
   # return information only for streams that will be used
   return mapping
