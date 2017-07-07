@@ -354,10 +354,11 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
   # type SRT alongside the original file. in such a case we import it into a
   # mov_text subtitle, setting the language adequately.
 
-  # re-arrange the languages so the ``show`` language comes first and the
-  # default language next. other languages come later, with preserved order
+  # re-arrange the languages so the input order is preserved. If the ``show``
+  # language is not among ``languages``, add it.
   if show is not None:
-    languages = _uniq([show] + languages)
+    if show not in languages:
+      languages = _uniq([show] + languages)
   curr_index = len([(k,v) for k,v in mapping.items() if v])
 
   for k in languages:
