@@ -541,7 +541,8 @@ def test_run_progress():
 
   probe = convert.probe(filename)
   streams = list(probe.iter('stream'))
-  video = [k for k in streams if k.attrib['codec_type'] == 'video'][0]
+  from .convert import _get_default_stream
+  video = _get_default_stream(streams, 'video')
 
   # creates a temporary filename
   tmpout = tempfile.NamedTemporaryFile(suffix='.mkv')
@@ -569,7 +570,8 @@ def test_run_no_progress():
 
   probe = convert.probe(filename)
   streams = list(probe.iter('stream'))
-  video = [k for k in streams if k.attrib['codec_type'] == 'video'][0]
+  from .convert import _get_default_stream
+  video = _get_default_stream(streams, 'video')
 
   # creates a temporary filename
   tmpout = tempfile.NamedTemporaryFile(suffix='.mkv')
