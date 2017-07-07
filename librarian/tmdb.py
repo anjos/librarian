@@ -227,6 +227,21 @@ def _us_certification(movie):
   return US_CONTENT_RATINGS_APPLE[ratings_us[0].get('certification')]
 
 
+def _hd_tag(filename):
+  '''Calculates the proper HD tag to use given a movie file'''
+
+  from .convert import probe, _get_streams, _get_default_stream
+  data = probe(filename)
+  streams = list(data.iter('stream'))
+  video = _get_default_stream(_get_streams(streams, 'video'), 'video')
+  width = int(video.attrib['width'])
+  height = int(video.attrib['height'])
+
+  if width >= 1900 or height >= 1060: return '2'
+  elif width >= 1260 or height >= 700: return '1'
+  return '0'
+
+
 def retag(filename, movie):
   '''Re-tags an MP4 file with information from the movie record
 
@@ -241,6 +256,7 @@ def retag(filename, movie):
   '''
 
   logger.info("Tagging file: %s" % filename)
+  hd_tag = _hd_tag(filename)
   video = MP4(filename)
 
   try:
@@ -254,7 +270,7 @@ def retag(filename, movie):
   video["ldes"] = movie.overview
   video["\xa9day"] = movie.release_date
   video["stik"] = [9]  # Movie iTunes category
-  #video["hdvd"] = self.HD
+  video["hdvd"] = [hd_tag]
   video["\xa9gen"] = [k['name'] for k in movie.genres]
   video["----:com.apple.iTunes:iTunMOVI"] = _make_apple_plist(movie)
   video["----:com.apple.iTunes:iTunEXTC"] = _us_certification(movie)

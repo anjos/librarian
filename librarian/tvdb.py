@@ -258,8 +258,10 @@ def retag(filename, episode):
       all fields required to retag the TV show episode
 
   '''
+  from .tmdb import _hd_tag
 
   logger.info("Tagging file: %s" % filename)
+  hd_tag = _hd_tag(filename)
   video = MP4(filename)
 
   try:
@@ -282,7 +284,7 @@ def retag(filename, episode):
   video["tves"] = [episode.EpisodeNumber]
   video["trkn"] = [(episode.EpisodeNumber, len(episode.season))]
   video["stik"] = [10]  # TV show iTunes category
-  #video["hdvd"] = self.HD
+  video["hdvd"] = [hd_tag]
   video["\xa9gen"] = episode.season.show.Genre
   video["----:com.apple.iTunes:iTunMOVI"] = _make_apple_plist(episode)
   video["----:com.apple.iTunes:iTunEXTC"] = _us_certification(episode)
