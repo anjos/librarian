@@ -24,10 +24,11 @@ directory.
 
 .. note::
 
-   We distribute build instructions to compile libfdk-aac and ffmpeg with
-   support for it. After conda building these packages locally, modify
-   ``dev.yml`` to take those into consideration and create a new enviroment
-   with those instead of the stock ``ffmpeg``.
+   We distribute build instructions to compile ``libfdk-aac`` and ffmpeg (named
+   ``ffmpeg-libdk-aac``) with support for it. fdk-acc is known to produce
+   better results for AAC VBR encoding. After "conda" building these packages
+   locally, use ``fdk-aac.yml`` to create the ``librarian-dev`` environment
+   instead of ``dev.yml`` as per instructions above.
 
 
 API Keys

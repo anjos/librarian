@@ -17,7 +17,7 @@ build:
 requirements:
   build:
     - toolchain
-    - perl 5.22.0.1
+    - perl 5.22.*
     - yasm
 
 test:

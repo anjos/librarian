@@ -16,6 +16,7 @@ build:
 about:
   home: http://sourceforge.net/projects/opencore-amr/files/fdk-aac/
   license: "Custom: Software License for The Fraunhofer FDK AAC Codec Library"
+  license_file: NOTICE
   summary: 'The Fraunhofer FDK AAC Codec Library for Android ("FDK AAC Codec") is software that implements the MPEG Advanced Audio Coding ("AAC") encoding and decoding scheme for digital audio'
 
 extra:

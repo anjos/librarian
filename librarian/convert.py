@@ -30,6 +30,7 @@ def ffmpeg_codec_capabilities():
     * 'decode': decoding supported (:py:class:`bool`)
     * 'encode': encoding supported (:py:class:`bool`)
     * 'type'  : codec type, one of 'video', 'audio' or 'subtitle'
+    * 'description': full description of the codec, including implementors
 
   '''
 
@@ -49,6 +50,7 @@ def ffmpeg_codec_capabilities():
     'decode': decode_translator[k.group('decode')],
     'encode': encode_translator[k.group('encode')],
     'type': type_translator[k.group('type')],
+    'description': k.group('desc').decode(),
     }) for k in output])
 
 
@@ -555,8 +557,8 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
     '''Chooses fdk-aac if available, otherwise stock aac'''
 
     caps = ffmpeg_codec_capabilities()
-    if 'libfdk_aac' in caps:
-      return ['fdk_aac', '-vbr', '4']
+    if 'libfdk_aac' in caps['aac']['description']:
+      return ['libfdk_aac', '-vbr', '4']
     else: #use default
       bitrate = channels * 64
       return ['aac', '-b:%d' % index, '%dk' % bitrate]

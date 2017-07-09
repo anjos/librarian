@@ -446,6 +446,11 @@ def test_options_mkv_1():
   output = os.path.splitext(moviefile)[0] + '.mp4'
   options = convert.options(moviefile, output, planning, threads=2)
 
+  has_libfdk_aac = 'libfdk_aac' in \
+      convert.ffmpeg_codec_capabilities()['aac']['description']
+  aac_encoder = ['-codec:1', 'libfdk_aac', '-vbr', '4'] if has_libfdk_aac \
+      else ['-codec:1', 'aac', '-b:1', '128k']
+
   expected = [
       '-threads', '2',
       '-fix_sub_duration',
@@ -458,7 +463,7 @@ def test_options_mkv_1():
       '-disposition:0', 'default',
       '-codec:0', 'copy',
       '-disposition:1', 'default',
-      '-codec:1', 'aac', '-b:1', '128k',
+      ] + aac_encoder + [
       '-disposition:2', 'none',
       '-codec:2', 'copy',
       '-disposition:3', 'default',
@@ -609,4 +614,3 @@ def test_ffmpeg_codecs():
   check_codec(all_caps, 'h264', 'video')
   check_codec(all_caps, 'mov_text', 'subtitle')
   check_codec(all_caps, 'subrip', 'subtitle')
-  #check_codec(all_caps, 'fdk_aac', 'audio')

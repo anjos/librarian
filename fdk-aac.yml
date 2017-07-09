@@ -1,0 +1,22 @@
+name: librarian-dev
+channels:
+- local
+- anjos
+- defaults
+dependencies:
+- python=3.6
+- six
+- docopt
+- guessit
+- mutagen
+- tmdbsimple
+- pytvdbapi
+- ffmpeg-fdk-aac
+- subliminal
+- ipdb
+- zc.buildout
+- nose
+- sphinx
+- coverage
+- pexpect
+- tqdm

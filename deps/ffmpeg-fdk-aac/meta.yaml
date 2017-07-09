@@ -1,19 +1,18 @@
+{% set name = "ffmpeg" %}
 {% set version = "3.3.2" %}
 
 package:
-  name: ffmpeg
+  name: {{ name }}-fdk-aac
   version: {{ version }}
 
 source:
-  url: https://ffmpeg.org/releases/ffmpeg-{{ version }}.tar.gz  # [not win]
+  url: https://ffmpeg.org/releases/{{ name }}-{{ version }}.tar.gz  # [not win]
   sha256: 84cf294b6b2115879f347ae74ab411876c4298e17d3a0db68a55338bb88fa594  # [not win]
 
-  fn: ffmpeg-{{ version }}-win32-shared.zip  # [win32]
-  url: https://ffmpeg.zeranoe.com/builds/win32/shared/ffmpeg-{{ version }}-win32-shared.zip  # [win32]
+  url: https://ffmpeg.zeranoe.com/builds/win32/shared/{{ name }}-{{ version }}-win32-shared.zip  # [win32]
   sha256: b85799b5cc99a8ce7cf2d57bc31d3605daa6b5a0c0f96a504b737dccfac32a51  # [win32]
 
-  fn: ffmpeg-{{ version }}-win64-shared.zip  # [win64]
-  url: https://ffmpeg.zeranoe.com/builds/win64/shared/ffmpeg-{{ version }}-win64-shared.zip  # [win64]
+  url: https://ffmpeg.zeranoe.com/builds/win64/shared/{{ name }}-{{ version }}-win64-shared.zip  # [win64]
   sha256: 5078ff4f64ba48fdd15215373409c33655ca7c635d0637350b85f2e938a089f4  # [win64]
 
 build:
