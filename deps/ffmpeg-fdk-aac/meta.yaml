@@ -1,0 +1,78 @@
+{% set version = "3.3.2" %}
+
+package:
+  name: ffmpeg
+  version: {{ version }}
+
+source:
+  url: https://ffmpeg.org/releases/ffmpeg-{{ version }}.tar.gz  # [not win]
+  sha256: 84cf294b6b2115879f347ae74ab411876c4298e17d3a0db68a55338bb88fa594  # [not win]
+
+  fn: ffmpeg-{{ version }}-win32-shared.zip  # [win32]
+  url: https://ffmpeg.zeranoe.com/builds/win32/shared/ffmpeg-{{ version }}-win32-shared.zip  # [win32]
+  sha256: b85799b5cc99a8ce7cf2d57bc31d3605daa6b5a0c0f96a504b737dccfac32a51  # [win32]
+
+  fn: ffmpeg-{{ version }}-win64-shared.zip  # [win64]
+  url: https://ffmpeg.zeranoe.com/builds/win64/shared/ffmpeg-{{ version }}-win64-shared.zip  # [win64]
+  sha256: 5078ff4f64ba48fdd15215373409c33655ca7c635d0637350b85f2e938a089f4  # [win64]
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - toolchain    # [not win]
+    - pkg-config   # [not win]
+    - libtool      # [not win]
+    - yasm         # [not win]
+    - bzip2 1.0.*  # [not win]
+    - libiconv     # [not win]
+    - x264         # [not win]
+    - fdk-aac      # [not win]
+    - zlib 1.2.*   # [not win]
+    - 7za          # [win]
+    - curl         # [win]
+    - openssl      # [win]
+  run:
+    - bzip2 1.0.*   # [not win]
+    - libiconv      # [not win]
+    - x264          # [not win]
+    - fdk-aac 0.1.* # [not win]
+    - zlib 1.2.*    # [not win]
+
+test:
+  commands:
+    - ffmpeg --help
+    - ffmpeg -codecs | grep "DEVI.S zlib"  # [unix]
+    # Verify dynamic libraries on all systems
+    {% set ffmpeg_libs = [
+        "avcodec",
+        "avdevice",
+        "swresample",
+        "postproc",
+        "avfilter",
+        "swresample",
+        "avcodec",
+        "avformat",
+        "swscale",
+        "avresample"
+    ] %}
+    {% for each_ffmpeg_lib in ffmpeg_libs %}
+    - test -f $PREFIX/lib/lib{{ each_ffmpeg_lib }}.dylib  # [osx]
+    - test -f $PREFIX/lib/lib{{ each_ffmpeg_lib }}.so     # [linux]
+    {% endfor %}
+
+about:
+  home: http://www.ffmpeg.org/
+  license: GPL 2
+  license_file: COPYING.GPLv2  # [unix]
+  summary: Cross-platform solution to record, convert and stream audio and video.
+
+extra:
+  recipe-maintainers:
+    - danielballan
+    - jakirkham
+    - 183amir
+    - caspervdw
+    - patricksnape
+    - anjos

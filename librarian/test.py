@@ -458,7 +458,7 @@ def test_options_mkv_1():
       '-disposition:0', 'default',
       '-codec:0', 'copy',
       '-disposition:1', 'default',
-      '-codec:1', 'aac', '-vbr', '4',
+      '-codec:1', 'aac', '-b:1', '128k',
       '-disposition:2', 'none',
       '-codec:2', 'copy',
       '-disposition:3', 'default',
@@ -589,3 +589,24 @@ def test_run_no_progress():
   finally:
     # always delete temporary file in the end
     if os.path.exists(tmpname): os.unlink(tmpname)
+
+
+def check_codec(all_caps, name, ctype):
+
+  assert name in all_caps
+  caps = all_caps[name]
+  nose.tools.eq_(caps['decode'], True)
+  nose.tools.eq_(caps['encode'], True)
+  nose.tools.eq_(caps['type'], ctype)
+
+
+def test_ffmpeg_codecs():
+
+  all_caps = convert.ffmpeg_codec_capabilities()
+
+  check_codec(all_caps, 'ac3', 'audio')
+  check_codec(all_caps, 'aac', 'audio')
+  check_codec(all_caps, 'h264', 'video')
+  check_codec(all_caps, 'mov_text', 'subtitle')
+  check_codec(all_caps, 'subrip', 'subtitle')
+  #check_codec(all_caps, 'fdk_aac', 'audio')

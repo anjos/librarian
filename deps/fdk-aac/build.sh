@@ -1,0 +1,1 @@
+./configure --enable-shared --prefix=$PREFIX; make && make install

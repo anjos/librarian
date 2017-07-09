@@ -18,6 +18,40 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def ffmpeg_codec_capabilities():
+  '''Checks if ffmpeg was compiled with a specific codec returns capabilities
+
+
+  Returns:
+
+    dict: A dictionary where keys are codec names and values correspond to a
+    capabilities dictionary containing the following key/values:
+
+    * 'decode': decoding supported (:py:class:`bool`)
+    * 'encode': encoding supported (:py:class:`bool`)
+    * 'type'  : codec type, one of 'video', 'audio' or 'subtitle'
+
+  '''
+
+  ffmpeg = os.path.join(os.path.dirname(sys.executable), 'ffmpeg')
+
+  output = subprocess.check_output([ffmpeg, '-codecs'],
+      stderr=subprocess.STDOUT)
+
+  codec_re = re.compile(b'^\s(?P<decode>[D\.])(?P<encode>[E\.])(?P<type>[AVS\.])[I\.][L\.][S\.]\s(?P<codec>\w+)\s+(?P<desc>.*)$')
+  output = [codec_re.match(k) for k in output.split(b'\n') if codec_re.match(k)]
+
+  decode_translator = {b'D': True, b'.': False}
+  encode_translator = {b'E': True, b'.': False}
+  type_translator = {b'V': 'video', b'A': 'audio', b'S': 'subtitle'}
+
+  return dict([(k.group('codec').decode(), {
+    'decode': decode_translator[k.group('decode')],
+    'encode': encode_translator[k.group('encode')],
+    'type': type_translator[k.group('type')],
+    }) for k in output])
+
+
 def probe(filename):
   '''Calls ffprobe and returns parsed output
 
@@ -517,6 +551,17 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
 
   '''
 
+  def _audio_codec(index, channels):
+    '''Chooses fdk-aac if available, otherwise stock aac'''
+
+    caps = ffmpeg_codec_capabilities()
+    if 'libfdk_aac' in caps:
+      return ['fdk_aac', '-vbr', '4']
+    else: #use default
+      bitrate = channels * 64
+      return ['aac', '-b:%d' % index, '%dk' % bitrate]
+
+
   # organizes the input stream by index
   keeping = [(k,v) for k,v in planning.items() if v]
   sorted_planning = sorted(keeping, key=lambda k: k[1]['index'])
@@ -532,14 +577,18 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
       if k == '__ios__': #secondary iOS stream
         mapopt += ['-map', '0:%d' % v['index']]
         codopt += [
-            '-disposition:%d' % v['index'], v['disposition'],
-            '-codec:%d' % v['index'], 'aac', '-vbr', '4',
-            # converting from surround (5.1) - this formula comes from:
-            # http://atsc.org/wp-content/uploads/2015/03/A52-201212-17.pdf
-            '-ac', '2', '-af', 'pan=stereo|FL < 1.0*FL + 0.707*FC + ' \
+            '-disposition:%d' % v['index'],
+            v['disposition'],
+            '-codec:%d' % v['index'],
+            ] + \
+            _audio_codec(v['index'], 2) + \
+            [
+                # converting from surround (5.1) - this formula comes from:
+                # http://atsc.org/wp-content/uploads/2015/03/A52-201212-17.pdf
+                '-ac', '2', '-af', 'pan=stereo|FL < 1.0*FL + 0.707*FC + ' \
                 '0.707*BL|FR < 1.0*FR + 0.707*FC + 0.707*BR',
-            '-metadata:s:%d' % v['index'],
-            'language=%s' % _get_stream_language(v['original']),
+                '-metadata:s:%d' % v['index'],
+                'language=%s' % _get_stream_language(v['original']),
             ]
 
       else: #subtitle SRT to bring in
@@ -567,9 +616,9 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
         codopt += ['copy']
       else: #some transcoding
         if kind == 'video':
-          codopt += ['libx264', '-preset', 'slower'] #default is medium
+          codopt += ['libx264', '-preset', 'slower', '-crf', '21']
         elif kind == 'audio':
-          codopt += ['aac', '-vbr', '4'] #good compromise (max is 5)
+          codopt += _audio_codec(v['index'], int(k.attrib['channels']))
         elif kind == 'subtitle':
           codopt += [
             'mov_text',

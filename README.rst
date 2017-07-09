@@ -22,6 +22,13 @@ command line::
 After running ``buildout``, you should have all executables inside the ``bin/``
 directory.
 
+.. note::
+
+   We distribute build instructions to compile libfdk-aac and ffmpeg with
+   support for it. After conda building these packages locally, modify
+   ``dev.yml`` to take those into consideration and create a new enviroment
+   with those instead of the stock ``ffmpeg``.
+
 
 API Keys
 --------
@@ -146,8 +153,13 @@ prepare::
 Then, you can build dependencies one by one, in order::
 
   $ for py in 2.7 3.5 3.6; do conda build --python=$py deps/httplib2; done
-  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/mutagen deps/pbr deps/httplib2 deps/pytvdbapi deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache deps/subliminal; do conda build $p; done
+  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/mutagen deps/pbr deps/pytvdbapi deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache deps/subliminal deps/tqdm; do conda build $p; done
   $ TMDB_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx conda build deps/tmdbsimple
+  $ conda build -c conda-forge deps/x264
+  $ conda build deps/ffmpeg
+  # only to run locally - not redistributable
+  $ conda build deps/fdk-aac
+  $ conda build deps/ffmpeg-fdk-aac #variant with fdk-aac built-in
 
 To build some of the packages, you'll need to setup environment variables with
 API keys.
@@ -162,6 +174,8 @@ everytime), do::
   $ anaconda login
   # enter credentials
   $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,mutagen,pbr,tmdbsimple,pytvdbapi,stevedore,rarfile,pysrt,enzyme,dogpile.cache,subliminal}-*.tar.bz2
+  $ anaconda upload <conda-bld>/*/{httplib2,x264,ffmpeg}-*.tar.bz2
+  # don't upload/distribute fdk-aac and ffmpeg-fdk-aac - it is not legal
 
 
 .. Place your references after this line
