@@ -20,7 +20,6 @@ build:
 
 requirements:
   build:
-    - toolchain    # [not win]
     - pkg-config   # [not win]
     - libtool      # [not win]
     - yasm         # [not win]

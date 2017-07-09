@@ -6,7 +6,6 @@ package:
   version: {{ version }}
 
 source:
-  fn: {{ name }}-snapshot-{{ version }}-2245-stable.tar.bz2
   url: http://download.videolan.org/pub/videolan/{{ name }}/snapshots/{{ name }}-snapshot-{{ version }}-2245-stable.tar.bz2
   md5: 28ac1befd423c504f0d502a9d6fdce18
 
@@ -16,8 +15,6 @@ build:
 
 requirements:
   build:
-    - toolchain
-    - perl 5.22.*
     - yasm
 
 test:
