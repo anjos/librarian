@@ -632,8 +632,8 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
 
     if isinstance(k, six.string_types):
 
-      if k == '__ios__': #secondary iOS stream
-        mapopt += ['-map', '0:%s' % v['original'].attrib['index']]
+      if k == '__ios__': #secondary iOS stream, converted from another one
+        mapopt += ['-map', '[iOS]']
         codopt += [
             '-disposition:%d' % v['index'],
             v['disposition'],
@@ -643,8 +643,9 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
             [
                 # converting from surround (5.1) - this formula comes from:
                 # http://atsc.org/wp-content/uploads/2015/03/A52-201212-17.pdf
-                '-ac', '2', '-af', 'pan=stereo|FL < 1.0*FL + 0.707*FC + ' \
-                '0.707*BL|FR < 1.0*FR + 0.707*FC + 0.707*BR',
+                '-filter_complex', '[0:%s]pan=stereo|FL<1.0*FL+0.707*FC+' \
+                '0.707*BL|FR<1.0*FR+0.707*FC+0.707*BR[iOS]' % \
+                v['original'].attrib['index'],
                 '-metadata:s:%d' % v['index'],
                 'language=%s' % _get_stream_language(v['original']),
             ]
