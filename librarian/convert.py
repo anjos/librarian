@@ -633,7 +633,7 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
     if isinstance(k, six.string_types):
 
       if k == '__ios__': #secondary iOS stream
-        mapopt += ['-map', '0:2']
+        mapopt += ['-map', '0:%s' % v['original'].attrib['index']]
         codopt += [
             '-disposition:%d' % v['index'],
             v['disposition'],
