@@ -37,7 +37,9 @@ Options:
                         This stream is selected prioritarily by iOS devices. It
                         is not audible by default otherwise.
   -t, --threads=N       Specify the number of threads ffmpeg is allowed to use
-                        from your machine. [default: %(threads)d]
+                        from your machine. If you set this number to zero, then
+                        ffmpeg will decide on the "optimal" number of threads
+                        to use for transcoding. [default: 0]
 
 
 Examples:
@@ -75,7 +77,6 @@ def main(user_input=None):
   completions = dict(
       prog=os.path.basename(sys.argv[0]),
       version=pkg_resources.require('librarian')[0].version,
-      threads=multiprocessing.cpu_count(),
       )
 
   args = docopt.docopt(
@@ -102,6 +103,14 @@ def main(user_input=None):
     streams = list(probe.iter('stream'))
     video = convert._get_default_stream(streams, 'video')
     frames = int(video.attrib['nb_frames'])
+
+    # handle backup
+    if os.path.exists(args['<outfile>']):
+      logger.warn('Renaming %s to %s~', args['<outfile>'], args['<outfile>'])
+      backup = args['<outfile>'] + '~'
+      if os.path.exists(backup): os.unlink(backup)
+      os.rename(args['<outfile>'], backup)
+
     retcode = convert.run(options, frames)
     sys.exit(retcode)
 

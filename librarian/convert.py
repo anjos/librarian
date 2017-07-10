@@ -11,7 +11,6 @@ import six
 import tqdm
 import pexpect
 import subprocess
-import multiprocessing
 from xml.etree import ElementTree
 
 import logging
@@ -135,7 +134,8 @@ def _get_default_stream(streams, ctype):
 
   assert streams
 
-  r = [s for s in streams if s.find('disposition').attrib['default'] == '1']
+  r = [s for s in streams if s.attrib['codec_type'] == ctype and \
+      s.find('disposition').attrib['default'] == '1']
 
   if len(r) == 0:
     logger.warn('No %s streams tagged with "default" - returning first' % ctype)
@@ -307,9 +307,10 @@ def _plan_audio(streams, languages, ios_audio, mapping):
     # if, at this point, ios_stream was not found, transcode from the default
     # audio stream
     if ios_stream is None:
-      logger.info('iOS audio stream is encoded in %s - transcoding ' \
-          'stream to AAC, profile = LC, channels = 2, language = %s',
-          default_audio.attrib['codec_name'], default_lang)
+      logger.info('iOS audio stream is encoded in %s (channels = 2) - ' \
+          'transcoding to aac, profile = LC, channels = 2, language = %s',
+          default_audio.attrib['codec_name'], default_audio.attrib['channels'],
+          default_lang)
       mapping['__ios__'] = {'original': default_audio}
       mapping['__ios__']['index'] = 2
       mapping['__ios__']['codec'] = 'aac'
@@ -591,7 +592,7 @@ def print_plan(plan):
               '**' if v['disposition'] == 'default' else ''))
 
 
-def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
+def options(infile, outfile, planning, threads=0):
   '''Define ffmpeg options to convert the input file into an output file
 
 
@@ -605,7 +606,8 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
     planning (dict): A transcode planning, as defined by by :py:func:`plan`.
 
     threads (:py:class:`int`, optional): The number of threads for ffmpeg to
-      use while transcoding the file
+      use while transcoding the file. If you set this number to zero (default
+      default), then let ffmpeg decide on how many threads to use.
 
   '''
 
