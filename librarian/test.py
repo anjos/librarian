@@ -14,8 +14,10 @@ from mutagen import mp4
 
 from . import tmdb, tvdb, utils, convert
 
-tmdb.setup_apikey()
-tvdb.setup_apikey()
+
+def setup_apikeys():
+  tmdb.setup_apikey()
+  tvdb.setup_apikey()
 
 
 def test_guess_movie_onlyname():
@@ -61,6 +63,7 @@ def test_guess_tv_show_fullpath():
   nose.tools.eq_(info['type'], 'episode')
 
 
+@nose.tools.with_setup(setup_apikeys)
 def test_tmdb_from_query():
 
   movie = tmdb.record_from_query('Star Wars Episode II')
@@ -71,6 +74,7 @@ def test_tmdb_from_query():
   nose.tools.eq_(movie.original_language, 'en')
 
 
+@nose.tools.with_setup(setup_apikeys)
 def test_tvdb_from_query():
 
   episode = tvdb.record_from_query('Friends', 1, 1)
@@ -95,6 +99,7 @@ def test_tvdb_from_query():
   assert len(show.poster) != 0
 
 
+@nose.tools.with_setup(setup_apikeys)
 def test_tmdb_from_guess():
 
   info = utils.guess('/Volumes/My Movies/Star Wars: Rogue One (2016).mp4',
@@ -107,6 +112,7 @@ def test_tmdb_from_guess():
   nose.tools.eq_(movie.original_language, 'en')
 
 
+@nose.tools.with_setup(setup_apikeys)
 def test_tvdb_from_guess():
 
   info = utils.guess('/Volumes/My TV Shows/friends.s01e01.the_one_where_monica_gets_a_roommate.mkv', fullpath=False)
@@ -133,6 +139,7 @@ def test_tvdb_from_guess():
   assert len(show.poster) != 0
 
 
+@nose.tools.with_setup(setup_apikeys)
 def test_mp4_movie_tagging():
 
   movie = tmdb.record_from_query('Star Wars Episode II')
@@ -167,6 +174,7 @@ def test_mp4_movie_tagging():
     assert len(covr) != 0
 
 
+@nose.tools.with_setup(setup_apikeys)
 def test_mp4_episode_tagging():
 
   episode = tvdb.record_from_query('Friends', 1, 1) #season 1, episode 1
@@ -309,22 +317,24 @@ def test_planning_mkv_1():
   nose.tools.eq_(opts['codec'], 'copy')
   nose.tools.eq_(opts['disposition'], 'default')
 
-  # this should be the 2-channel audio stream, not in AAC format
-  # even if ios_audio is ``True``, we should not have a second stream because
-  # the first audio stream is already good enough for iOS compatibility
+  # this should be the 2-channel audio stream, english, in AAC format
   audio, opts = sorted_planning[1]
+  assert 'aac' in audio.attrib['codec_name']
+  nose.tools.eq_(audio.attrib['codec_type'], 'audio')
+  nose.tools.eq_(audio.attrib['channels'], '2')
+  nose.tools.eq_(audio.attrib['index'], '2')
+  nose.tools.eq_(opts['index'], 1)
+  nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'default')
+
+  # the 3rd stream should be the french dubbed version, not in AAC encoded
+  audio, opts = sorted_planning[2]
   assert 'aac' not in audio.attrib['codec_name']
   nose.tools.eq_(audio.attrib['codec_type'], 'audio')
   nose.tools.eq_(audio.attrib['channels'], '2')
-  nose.tools.eq_(opts['index'], 1)
-  nose.tools.eq_(opts['codec'], 'aac')
-  nose.tools.eq_(opts['disposition'], 'default')
-
-  # the 3rd stream should be the english dubbed version, it is AAC encoded
-  audio, opts = sorted_planning[2]
-  nose.tools.eq_(audio.attrib['codec_type'], 'audio')
+  nose.tools.eq_(audio.attrib['index'], '1')
   nose.tools.eq_(opts['index'], 2)
-  nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['codec'], 'aac')
   nose.tools.eq_(opts['disposition'], 'none')
 
   # the 4th stream should be an external SRT subtitle in english
@@ -443,13 +453,15 @@ def test_options_mkv_1():
   planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True,
       default_subtitle_language='eng')
 
+  #convert.print_plan(planning)
+
   output = os.path.splitext(moviefile)[0] + '.mp4'
   options = convert.options(moviefile, output, planning, threads=2)
 
   has_libfdk_aac = 'libfdk_aac' in \
       convert.ffmpeg_codec_capabilities()['aac']['description']
-  aac_encoder = ['-codec:1', 'libfdk_aac', '-vbr', '4'] if has_libfdk_aac \
-      else ['-codec:1', 'aac', '-b:1', '128k']
+  aac_encoder = ['-codec:2', 'libfdk_aac', '-vbr', '4'] if has_libfdk_aac \
+      else ['-codec:2', 'aac', '-b:1', '128k']
 
   expected = [
       '-threads', '2',
@@ -457,15 +469,17 @@ def test_options_mkv_1():
       '-i', moviefile,
       '-i', os.path.splitext(moviefile)[0] + '.eng.srt',
       '-map', '0:0',
-      '-map', '0:1',
       '-map', '0:2',
-      '-map', '1:3',
+      '-map', '0:1',
+      '-map', '1:0',
       '-disposition:0', 'default',
       '-codec:0', 'copy',
       '-disposition:1', 'default',
-      ] + aac_encoder + [
+      '-codec:1', 'copy',
+      '-metadata:s:1', 'language=eng',
       '-disposition:2', 'none',
-      '-codec:2', 'copy',
+      ] + aac_encoder + [
+      '-metadata:s:2', 'language=fre',
       '-disposition:3', 'default',
       '-codec:3', 'mov_text',
       '-metadata:s:3', 'language=eng',
@@ -506,31 +520,36 @@ def test_options_mkv_2():
   output = os.path.splitext(moviefile)[0] + '.mp4'
   options = convert.options(moviefile, output, planning, threads=3)
 
+  #convert.print_plan(planning)
+
   expected = [
       '-threads', '3',
       '-fix_sub_duration',
       '-i', moviefile,
       '-i', os.path.splitext(moviefile)[0] + '.eng.srt',
-      '-map', '0:0',
-      '-map', '0:1',
-      '-map', '0:2',
-      '-map', '0:3',
-      '-map', '1:4',
-      '-map', '0:5',
+      '-map', '0:0', #video - copy
+      '-map', '0:1', #eng audio - copy (6 chan)
+      '-map', '0:3', #ios audio - copy
+      '-map', '0:2', #fre audio - copy
+      '-map', '1:0', #eng subtitles - encode as mov_text
+      '-map', '0:4', #fre subtitles - copy
       '-disposition:0', 'default',
       '-codec:0', 'copy',
       '-disposition:1', 'default',
       '-codec:1', 'copy',
+      '-metadata:s:1', 'language=eng', #main english 5.1 DTS
       '-disposition:2', 'none',
       '-codec:2', 'copy',
+      '-metadata:s:2', 'language=eng', #iOS english, stereo
       '-disposition:3', 'none',
       '-codec:3', 'copy',
+      '-metadata:s:3', 'language=fre', #french dubbed
       '-disposition:4', 'none',
       '-codec:4', 'mov_text',
-      '-metadata:s:4', 'language=eng',
+      '-metadata:s:4', 'language=eng', #subtitles in english
       '-disposition:5', 'none',
       '-codec:5', 'mov_text',
-      '-metadata:s:5', 'language=fre',
+      '-metadata:s:5', 'language=fre', #subtitles in french
       '-movflags', '+faststart',
       os.path.splitext(moviefile)[0] + '.mp4',
       ]

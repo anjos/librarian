@@ -106,51 +106,8 @@ def main(user_input=None):
     sys.exit(retcode)
 
   else:
-
-    def _sorter(k):
-      if isinstance(k[0], six.string_types):
-        return k[1]['index']
-      return int(k[0].attrib['index'])
-
-    # print the planning
     print('Stream planning:')
-    for k,v in sorted(planning.items(), key=_sorter):
-      if not v: #deleting
-        print('  %s stream [%s] lang=%s codec=%s -> [deleted]' % \
-            (k.attrib['codec_type'], k.attrib['index'],
-              convert._get_stream_language(k), k.attrib['codec_name']))
-        continue
-
-      if isinstance(k, six.string_types):
-        # either it is an __ios__ stream or an external sub
-        if k == '__ios__':
-          print('  %s stream [%s] lang=%s codec=%s -> [%d] codec=%s (iOS)' % \
-              (v['original'].attrib['codec_type'],
-                v['original'].attrib['index'],
-                convert._get_stream_language(v['original']),
-                v['original'].attrib['codec_name'],
-                v['index'], v['codec']))
-        else: #it is a subtitle
-          print('external srt lang=%s -> [%d] codec=%s %s' \
-              (os.path.basename(k), v['language'], v['index'], v['codec'],
-              '**' if v['disposition'] == 'default' else ''))
-
-      else:
-        if k.attrib['codec_type'] in ('video', 'subtitle'):
-          print('  %s stream [%s] lang=%s codec=%s -> [%d] codec=%s %s' % \
-              (k.attrib['codec_type'], k.attrib['index'],
-                convert._get_stream_language(k), k.attrib['codec_name'],
-                v['index'], v['codec'],
-                '**' if v['disposition'] == 'default' else ''))
-        elif k.attrib['codec_type'] == 'audio':
-          print('  %s stream [%s] lang=%s codec=%s channels=%s -> [%d] '\
-              'codec=%s %s' % \
-              (k.attrib['codec_type'], k.attrib['index'],
-                convert._get_stream_language(k), k.attrib['codec_name'],
-                k.attrib['channels'], v['index'], v['codec'],
-                '**' if v['disposition'] == 'default' else ''))
-
+    convert.print_plan(planning)
     print('Options for ffmpeg:')
     print('  %s' % ' '.join(options))
-
     sys.exit(0)

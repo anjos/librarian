@@ -20,7 +20,7 @@
             <tag key="language" value="eng"/>
             <tag key="title" value="dummy"/>
         </stream>
-        <stream index="3" codec_name="subrip" codec_long_name="SubRip subtitle" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="8140222" duration="8140.222000">
+        <stream index="4" codec_name="subrip" codec_long_name="SubRip subtitle" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="8140222" duration="8140.222000">
             <disposition default="1" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="1" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
             <tag key="title" value="dummy"/>
             <tag key="language" value="fre"/>

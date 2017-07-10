@@ -193,7 +193,6 @@ def _copy_or_transcode(stream, name, codec, settings):
         stream.attrib['index'],
         _get_stream_language(stream),
         codec)
-    logger.info('Default audio is encoded in AAC - copying stream')
     settings['codec'] = 'copy'
 
 
@@ -232,8 +231,8 @@ def _get_default_audio_stream(streams, languages):
 
   assert languages
 
-  for s in streams:
-    for l in languages:
+  for l in languages:
+    for s in streams:
       if l == _get_stream_language(s):
         if l != languages[0]:
           logger.warn('Could not find audio stream in ``%s\' - ' \
@@ -514,7 +513,8 @@ def plan(probe, languages, default_subtitle_language=None, ios_audio=True):
 
     dict: A dictionary with the transcoding plan considering all aspects
     related to the movie file and allowing for minimal CPU effort to take
-    place.
+    place. The keys correspond to the stream XML objects. Values are
+    dictionaries with properties of the transcoding plan.
 
   '''
 
@@ -533,6 +533,62 @@ def plan(probe, languages, default_subtitle_language=None, ios_audio=True):
 
   # return information only for streams that will be used
   return mapping
+
+
+def print_plan(plan):
+  '''Prints out the transcoding plan
+
+
+  Parameters:
+
+    plan (dict): A dictionary with the transcoding plan considering all aspects
+      related to the movie file and allowing for minimal CPU effort to take
+      place. The keys correspond to the stream XML objects. Values are
+      dictionaries with properties of the transcoding plan.
+
+  '''
+
+  def _sorter(k):
+    if isinstance(k[0], six.string_types):
+      return k[1]['index']
+    return int(k[0].attrib['index'])
+
+  # print the planning
+  for k,v in sorted(plan.items(), key=_sorter):
+    if not v: #deleting
+      print('  %s stream [%s] lang=%s codec=%s -> [deleted]' % \
+          (k.attrib['codec_type'], k.attrib['index'],
+            _get_stream_language(k), k.attrib['codec_name']))
+      continue
+
+    if isinstance(k, six.string_types):
+      # either it is an __ios__ stream or an external sub
+      if k == '__ios__':
+        print('  %s stream [%s] lang=%s codec=%s -> [%d] codec=%s (iOS)' % \
+            (v['original'].attrib['codec_type'],
+              v['original'].attrib['index'],
+              _get_stream_language(v['original']),
+              v['original'].attrib['codec_name'],
+              v['index'], v['codec']))
+      else: #it is a subtitle
+        print('  (%s) lang=%s -> [%d] codec=%s %s' % \
+            (os.path.basename(k), v['language'], v['index'], v['codec'],
+            '**' if v['disposition'] == 'default' else ''))
+
+    else:
+      if k.attrib['codec_type'] in ('video', 'subtitle'):
+        print('  %s stream [%s] lang=%s codec=%s -> [%d] codec=%s %s' % \
+            (k.attrib['codec_type'], k.attrib['index'],
+              _get_stream_language(k), k.attrib['codec_name'],
+              v['index'], v['codec'],
+              '**' if v['disposition'] == 'default' else ''))
+      elif k.attrib['codec_type'] == 'audio':
+        print('  %s stream [%s] lang=%s codec=%s channels=%s -> [%d] '\
+            'codec=%s %s' % \
+            (k.attrib['codec_type'], k.attrib['index'],
+              _get_stream_language(k), k.attrib['codec_name'],
+              k.attrib['channels'], v['index'], v['codec'],
+              '**' if v['disposition'] == 'default' else ''))
 
 
 def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
@@ -577,7 +633,7 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
     if isinstance(k, six.string_types):
 
       if k == '__ios__': #secondary iOS stream
-        mapopt += ['-map', '0:%d' % v['index']]
+        mapopt += ['-map', '0:2']
         codopt += [
             '-disposition:%d' % v['index'],
             v['disposition'],
@@ -595,7 +651,7 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
 
       else: #subtitle SRT to bring in
         inopt += ['-i', k]
-        mapopt += ['-map', str(extsubcnt) + ':' + str(v['index'])]
+        mapopt += ['-map', str(extsubcnt) + ':0']
         extsubcnt += 1
         codopt += [
             '-disposition:%d' % v['index'], v['disposition'],
@@ -607,7 +663,7 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
 
     else: # normal stream to be moved or transcoded
 
-      mapopt += ['-map', '0:%d' % v['index']]
+      mapopt += ['-map', '0:%s' % k.attrib['index']]
       codopt += [
           '-disposition:%d' % v['index'], v['disposition'],
           '-codec:%d' % v['index'],
@@ -622,8 +678,10 @@ def options(infile, outfile, planning, threads=multiprocessing.cpu_count()):
         elif kind == 'audio':
           codopt += _audio_codec(v['index'], int(k.attrib['channels']))
         elif kind == 'subtitle':
-          codopt += [
-            'mov_text',
+          codopt += ['mov_text']
+
+      if kind in ('audio', 'subtitle'): #add language
+        codopt += [
             '-metadata:s:%d' % v['index'],
             'language=%s' % _get_stream_language(k),
             ]
