@@ -461,7 +461,7 @@ def test_options_mkv_1():
   has_libfdk_aac = 'libfdk_aac' in \
       convert.ffmpeg_codec_capabilities()['aac']['description']
   aac_encoder = ['-codec:2', 'libfdk_aac', '-vbr', '4'] if has_libfdk_aac \
-      else ['-codec:2', 'aac', '-b:1', '128k']
+      else ['-codec:2', 'aac', '-b:2', '128k']
 
   expected = [
       '-threads', '2',
