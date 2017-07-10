@@ -307,7 +307,7 @@ def _plan_audio(streams, languages, ios_audio, mapping):
     # if, at this point, ios_stream was not found, transcode from the default
     # audio stream
     if ios_stream is None:
-      logger.info('iOS audio stream is encoded in %s (channels = 2) - ' \
+      logger.info('iOS audio stream is encoded in %s (channels = %s) - ' \
           'transcoding to aac, profile = LC, channels = 2, language = %s',
           default_audio.attrib['codec_name'], default_audio.attrib['channels'],
           default_lang)
