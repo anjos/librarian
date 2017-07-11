@@ -31,6 +31,15 @@ US_CONTENT_RATINGS_APPLE = {
     }
 
 
+def load_config_section(fname, section):
+  '''Loads a whole section from a configuration file'''
+
+  parser = configparser.ConfigParser()
+  parser.read(fname)
+  if section in parser: return parser[section]
+  return None
+
+
 def var_from_config(fname, section, name):
   '''Loads information from a INI-style configuration file'''
 

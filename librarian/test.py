@@ -5,6 +5,7 @@
 
 import os
 import six
+import shutil
 import tempfile
 import datetime
 import pkg_resources
@@ -12,7 +13,7 @@ from xml.etree import ElementTree
 import nose.tools
 from mutagen import mp4
 
-from . import tmdb, tvdb, utils, convert
+from . import tmdb, tvdb, utils, convert, subtitles
 
 
 def setup_apikeys():
@@ -633,3 +634,35 @@ def test_ffmpeg_codecs():
   check_codec(all_caps, 'h264', 'video')
   check_codec(all_caps, 'mov_text', 'subtitle')
   check_codec(all_caps, 'subrip', 'subtitle')
+
+
+def test_subtitle_search():
+
+  p = '/path/to/file/Alien.1979.Directors.Cut.Bluray.1080p.DTS-HD.x264-Grym.mkv'
+  providers = ['podnapisi']
+  languages = ['en', 'fre']
+  config = subtitles.setup_subliminal()
+  results = subtitles.search(p, languages, config, providers=providers)
+  assert len(results['en']) > 0
+  assert len(results['fre']) > 0
+
+
+def test_subtitle_download():
+
+  tempdir = tempfile.mkdtemp()
+  providers = ['podnapisi'] #does not need password setup
+  languages = ['en', 'fre']
+
+  try:
+    n = 'Alien.1979.Directors.Cut.Bluray.1080p.DTS-HD.x264-Grym.mkv'
+    fn = os.path.join(tempdir, n)
+    config = subtitles.setup_subliminal()
+    results = subtitles.search(fn, languages, config, providers=providers)
+    subtitles.download(fn, results, languages, config, providers=providers)
+    en_sub = os.path.join(tempdir, os.path.splitext(n)[0] + '.en.srt')
+    assert os.path.exists(en_sub)
+    fr_sub = os.path.join(tempdir, os.path.splitext(n)[0] + '.fr.srt')
+    assert os.path.exists(fr_sub)
+
+  finally:
+    if os.path.exists(tempdir): shutil.rmtree(tempdir)

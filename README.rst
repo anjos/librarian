@@ -31,15 +31,14 @@ directory.
    instead of ``dev.yml`` as per instructions above.
 
 
-API Keys
---------
+API Keys and Passwords
+----------------------
 
 For some of the functionality, you'll need to setup API keys that will be used
 to contact the movie/TV show database. You may pass the keys everytime you use
 one of the applications bundled or permanently set it up on your account and
 let the apps find it. The search order is the following:
 
-0. If you pass the API key through the command line, then they take precedence
 1. If a file named ``.librarianrc`` exists on the current directory, then it is
    loaded and it should contain a variable named ``tmdb`` (or ``tvdb``) inside
    a section named ``apikeys``, with the value of your API key
@@ -55,6 +54,14 @@ INI-style syntax::
   tmdb = 1234567890abcdef123456
   tvdb = 1234567890abc
 
+  [subtitles]
+  opensubtitles_username = user
+  opensubtitles_password = pass
+  legendastv_username = user
+  legendastv_password = pass
+  addic7ed_username = user
+  addic7ed_password = pass
+
 
 Usage
 =====
@@ -65,9 +72,11 @@ There are various utilities you may use for organizing a video library.
 Downloading Subtitles
 ---------------------
 
-To download subtitles for movies and TV shows, we use `subliminal`_::
+This is done through subliminal_::
 
-  $ ./bin/subliminal download -l en titled-movie-year.mp4
+  $ ./bin/getsubs --help
+
+The help command above should get you rolling.
 
 
 Converting to MP4
