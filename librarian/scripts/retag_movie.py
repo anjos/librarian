@@ -89,9 +89,14 @@ def main(user_input=None):
     movie = record_from_query(args['--query'])
 
   # printout some information about the movie
-  logger.info('Title: %s', movie.title)
-  logger.info('Release date: %s', movie.release_date)
-  logger.info('TMDB id: %d', movie.id)
+  if movie is not None:
+    logger.info('Title: %s', movie.title)
+    logger.info('Release date: %s', movie.release_date)
+    logger.info('TMDB id: %d', movie.id)
+  else:
+    logger.error('No results found for `%s\'', args['--query'])
+    logger.error('Not re-tagging file')
+    sys.exit(1)
 
   from ..tmdb import retag
   retag(args['<file>'], movie)

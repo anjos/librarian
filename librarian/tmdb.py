@@ -84,7 +84,8 @@ def record_from_query(query, year=None):
 
   Returns:
 
-    obj: An object representing a movie returned from the tmdbsimple API
+    obj: An object representing a movie returned from the tmdbsimple API, if a
+    match can be found. Otherwise, ``None``.
 
   '''
 
@@ -93,16 +94,18 @@ def record_from_query(query, year=None):
   if year is not None: args['year'] = year
   logger.info('Searching TMDB for `%s\'', query)
   response = search.movie(**args)
-  logger.info('Retrieving information for movie id=`%d\'',
-      response['results'][0]['id'])
-  retval = tmdb.Movies(response['results'][0]['id'])
+  if response['total_results'] >= 1:
+    logger.info('Retrieving information for movie id=`%d\'',
+        response['results'][0]['id'])
+    retval = tmdb.Movies(response['results'][0]['id'])
 
-  # trigger downloading of a few resources
-  retval.info() #basic movie information
-  retval.credits() #cast
-  retval.releases() #ratings in US
+    # trigger downloading of a few resources
+    retval.info() #basic movie information
+    retval.credits() #cast
+    retval.releases() #ratings in US
+    return retval
 
-  return retval
+  return None
 
 
 def record_from_guess(guess):
