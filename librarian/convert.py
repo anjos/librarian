@@ -11,6 +11,7 @@ import six
 import tqdm
 import pexpect
 import subprocess
+import chardet
 from xml.etree import ElementTree
 
 import logging
@@ -354,6 +355,14 @@ def _plan_audio(streams, languages, ios_audio, mapping):
         if _get_stream_language(s) != k]
 
 
+def _detect_srt_encoding(fname):
+  '''Tries to detect the most pertinent encoding for the input SRT file'''
+
+  with open(fname, 'rb') as f:
+    ret = chardet.detect(f.read())
+    return ret['encoding'].upper() if ret['encoding'] is not None else None
+
+
 def _plan_subtitles(streams, filename, languages, mapping, show=None):
   '''Creates a transcoding plan for subtitle streams
 
@@ -419,11 +428,13 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
     # in this case, look for an external subtitle file on the target language
     candidate = os.path.splitext(filename)[0] + '.' + k + '.srt'
     if os.path.exists(candidate):
+
       mapping[candidate] = {'index': curr_index}
       curr_index += 1
       mapping[candidate]['disposition'] = 'default' if show == k else 'none'
       mapping[candidate]['codec'] = 'mov_text'
       mapping[candidate]['language'] = k
+      mapping[candidate]['encoding'] = _detect_srt_encoding(candidate)
 
     # remove any used stream so we don't iterate over it again
     subtitle_streams = [s for s in subtitle_streams if s != used_stream]
@@ -576,9 +587,11 @@ def print_plan(plan):
               _get_stream_language(v['original']),
               v['original'].attrib['codec_name'],
               v['index'], v['codec']))
-      else: #it is a subtitle
-        print('  (%s) lang=%s -> [%d] codec=%s %s' % \
-            (os.path.basename(k), v['language'], v['index'], v['codec'],
+      else: #it is a subtitle in srt format
+        print('  (%s) lang=%s encoding=%s -> [%d] codec=%s %s' % \
+            (os.path.basename(k), v['language'],
+              v['encoding'] if v['encoding'] is not None else '??',
+              v['index'], v['codec'],
             '**' if v['disposition'] == 'default' else ''))
 
     else:
@@ -658,6 +671,8 @@ def options(infile, outfile, planning, threads=0):
             ]
 
       else: #subtitle SRT to bring in
+        if v['encoding'] is not None:
+          inopt += ['-sub_charenc', v['encoding']]
         inopt += ['-i', k]
         mapopt += ['-map', str(extsubcnt) + ':0']
         extsubcnt += 1

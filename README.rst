@@ -76,7 +76,9 @@ Converting to MP4
 This is done through ffmpeg, with parameters optimized for saving CPU, better
 cross-device compatibility and streaming::
 
-  $ ./bin/tomp4.py
+  $ ./bin/tomp4.py --help
+
+The help command above should get you rolling.
 
 
 Re-tagging a Movie
@@ -154,7 +156,7 @@ prepare::
 Then, you can build dependencies one by one, in order::
 
   $ for py in 2.7 3.5 3.6; do conda build --python=$py deps/httplib2; done
-  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/mutagen deps/pbr deps/pytvdbapi deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache deps/subliminal deps/tqdm; do conda build $p; done
+  $ for p in deps/rebulk deps/babelfish deps/guessit deps/zc.buildout deps/ipdb deps/mutagen deps/pbr deps/pytvdbapi deps/stevedore deps/rarfile deps/pysrt deps/enzyme deps/dogpile.cache deps/subliminal deps/tqdm deps/chardet; do conda build $p; done
   $ TMDB_APIKEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx conda build deps/tmdbsimple
   $ conda build -c conda-forge deps/x264
   $ conda build deps/ffmpeg
@@ -174,7 +176,7 @@ everytime), do::
 
   $ anaconda login
   # enter credentials
-  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,mutagen,pbr,tmdbsimple,pytvdbapi,stevedore,rarfile,pysrt,enzyme,dogpile.cache,subliminal}-*.tar.bz2
+  $ anaconda upload <conda-bld>/noarch/{rebulk,babelfish,guessit,zc.buildout,ipdb,mutagen,pbr,tmdbsimple,pytvdbapi,stevedore,rarfile,pysrt,enzyme,dogpile.cache,subliminal,tqdm,chardet}-*.tar.bz2
   $ anaconda upload <conda-bld>/*/{httplib2,x264,ffmpeg}-*.tar.bz2
   # don't upload/distribute fdk-aac and ffmpeg-fdk-aac - it is not legal
 
