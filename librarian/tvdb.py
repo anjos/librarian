@@ -64,7 +64,7 @@ def setup_apikey(user_provided=None):
 
   home_path = os.path.join(os.environ['HOME'], '.librarianrc')
   if os.path.exists(home_path):
-    key = var_from_config('.librarianrc', 'apikeys', 'tvdb')
+    key = var_from_config(home_path, 'apikeys', 'tvdb')
     if key is not None:
       server = tvdb.TVDB(key)
       return

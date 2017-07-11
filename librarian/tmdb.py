@@ -59,7 +59,7 @@ def setup_apikey(user_provided=None):
 
   home_path = os.path.join(os.environ['HOME'], '.librarianrc')
   if os.path.exists(home_path):
-    key = var_from_config('.librarianrc', 'apikeys', 'tmdb')
+    key = var_from_config(home_path, 'apikeys', 'tmdb')
     if key is not None:
       tmdb.API_KEY = key
       return
