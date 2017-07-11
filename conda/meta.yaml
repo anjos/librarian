@@ -37,6 +37,7 @@ requirements:
     - ffmpeg
     - pexpect
     - tqdm
+    - chardet
 
 test:
   imports:
