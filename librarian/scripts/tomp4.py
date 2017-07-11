@@ -60,7 +60,6 @@ Examples:
 
 import os
 import sys
-import six
 
 
 def main(user_input=None):
@@ -72,7 +71,6 @@ def main(user_input=None):
 
   import docopt
   import pkg_resources
-  import multiprocessing
 
   completions = dict(
       prog=os.path.basename(sys.argv[0]),
