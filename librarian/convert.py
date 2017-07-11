@@ -406,19 +406,24 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
         # incorporate stream into the output file
         mapping[s]['index'] = curr_index
         mapping[s]['disposition'] = 'default' if show == k else 'none'
+        mapping[s]['language'] = k
         curr_index += 1
         _copy_or_transcode(s, 'mov_text', 'mov_text', mapping[s])
+        used_stream = s
         break #go to the next language, don't pay attention to SRT files
 
-      # if you get at this point, it is because we never entered the if clause
-      # in this case, look for an external subtitle file on the target language
-      candidate = os.path.splitext(filename)[0] + '.' + k + '.srt'
-      if os.path.exists(candidate):
-        mapping[candidate] = {'index': curr_index}
-        curr_index += 1
-        mapping[candidate]['disposition'] = 'default' if show == k else 'none'
-        mapping[candidate]['codec'] = 'mov_text'
-        mapping[candidate]['language'] = k
+    # already found a stream, continue to the next language
+    if used_stream is not None: continue
+
+    # if you get at this point, it is because we never entered the if clause
+    # in this case, look for an external subtitle file on the target language
+    candidate = os.path.splitext(filename)[0] + '.' + k + '.srt'
+    if os.path.exists(candidate):
+      mapping[candidate] = {'index': curr_index}
+      curr_index += 1
+      mapping[candidate]['disposition'] = 'default' if show == k else 'none'
+      mapping[candidate]['codec'] = 'mov_text'
+      mapping[candidate]['language'] = k
 
     # remove any used stream so we don't iterate over it again
     subtitle_streams = [s for s in subtitle_streams if s != used_stream]
