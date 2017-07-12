@@ -78,7 +78,7 @@ def main(user_input=None):
   #logger = setup_logger('subliminal', args['--verbose'])
 
   # normalize languages
-  args['<language>'] = [as_language(k) for k in args['--language']]
+  args['<language>'] = [as_language(k) for k in args['<language>']]
 
   from .. import subtitles
   config = subtitles.setup_subliminal()
@@ -90,4 +90,4 @@ def main(user_input=None):
     subtitles.print_results(results, args['<language>'], limit=limit)
 
   else:
-    subtitles.download(args['<file>'], results, args['<languages>'], config)
+    subtitles.download(args['<file>'], results, args['<language>'], config)
