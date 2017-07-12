@@ -38,7 +38,7 @@ Examples:
 
   2. Suggest the movie title instead of guessing:
 
-     $ %(prog)s -vv movie.mp4 --query="Rogue One (2016)"
+     $ %(prog)s -vv movie.mp4 --query="Rogue One"
 
 """
 
