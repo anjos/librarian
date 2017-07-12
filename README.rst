@@ -24,11 +24,11 @@ directory.
 
 .. note::
 
-   We distribute build instructions to compile ``libfdk-aac`` and ffmpeg (named
-   ``ffmpeg-libdk-aac``) with support for it. fdk-acc is known to produce
-   better results for AAC VBR encoding. After "conda" building these packages
-   locally, use ``fdk-aac.yml`` to create the ``librarian-dev`` environment
-   instead of ``dev.yml`` as per instructions above.
+   We distribute build instructions to compile ``libfdk-aac`` and ffmpeg
+   (namely ``ffmpeg-libdk-aac``) with support for it. ``fdk-acc`` is known to
+   produce better results for AAC VBR encoding. After "conda" building these
+   packages locally, use ``fdk-aac.yml`` to create the ``librarian-dev``
+   environment instead of ``dev.yml`` as per instructions above.
 
 
 API Keys and Passwords
@@ -72,34 +72,32 @@ There are various utilities you may use for organizing a video library.
 Downloading Subtitles
 ---------------------
 
-This is done through subliminal_::
+This is done through subliminal_ with::
 
   $ ./bin/getsubs --help
-
-The help command above should get you rolling.
 
 
 Converting to MP4
 -----------------
 
-This is done through ffmpeg, with parameters optimized for saving CPU, better
+This is done through ffmpeg_, with parameters optimized for saving CPU, better
 cross-device compatibility and streaming::
 
   $ ./bin/tomp4.py --help
 
-The help command above should get you rolling.
 
 
 Re-tagging a Movie
 ------------------
 
-To re-tag an MP4 file with a movie, do the following::
+Re-tagging will fill in MP4 metadata such as title, year, cast, crew, synopsis,
+cover and more. To re-tag an MP4 file with a movie, do the following::
 
   $ ./bin/retag_movie.py <file>.mp4
 
 This command will attempt to guess the movie title (and date) from the input
-file name using `guessit`_. The program will then probe the TMDB database using
-`tmdbsimple`_.
+file name using guessit_. The program will then probe the TMDB database using
+tmdbsimple_.
 
 You can specify a friendly search string (e.g. movie title and year) to
 optimize the search and avoid guessing::
@@ -133,6 +131,8 @@ mutagen_, similar to movies.
 Development
 ===========
 
+Here are instructions if you wish to change any part of this library.
+
 
 Build
 -----
@@ -143,7 +143,7 @@ To build the project and make it ready to run, do::
   $ source activate librarian-dev
   $ buildout
 
-This command should leave you with a functional environment.
+This command should leave you with a functional development environment.
 
 
 Testing
@@ -199,4 +199,4 @@ everytime), do::
 .. _qtfaststart: https://github.com/danielgtaylor/qtfaststart
 .. _pytvdbapi: https://github.com/fuzzycode/pytvdbapi
 .. _sickbeard's mp4 automator: https://github.com/mdhiggins/sickbeard_mp4_automator
-.. _ffmpeg-python: https://github.com/kkroening/ffmpeg-python
+.. _ffmpeg: https://ffmpeg.org
