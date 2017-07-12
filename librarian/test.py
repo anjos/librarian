@@ -392,7 +392,7 @@ def test_planning_mkv_1():
   # the 4th stream should be an external SRT subtitle in english
   subt, opts = sorted_planning[3]
   assert isinstance(subt, six.string_types)
-  assert subt.endswith('en-GB.srt')
+  assert subt.endswith('en-gb.srt')
   nose.tools.eq_(opts['index'], 3)
   nose.tools.eq_(opts['codec'], 'mov_text')
   nose.tools.eq_(opts['language'], languages[0])
@@ -526,7 +526,7 @@ def test_options_mkv_1():
       '-threads', '2',
       '-fix_sub_duration',
       '-i', moviefile,
-      '-i', os.path.splitext(moviefile)[0] + '.en-GB.srt',
+      '-i', os.path.splitext(moviefile)[0] + '.en-gb.srt',
       '-map', '0:0',
       '-map', '0:2',
       '-map', '0:1',
