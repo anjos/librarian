@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 # Apple tag translations for various US content ratings
 US_CONTENT_RATINGS_APPLE = {
     None: b'mpaa|Not Rated|000|',
+    "": b'mpaa|Not Rated|000|',
     "TV-Y": b'us-tv|TV-Y|100|',
     "TV-Y7": b'us-tv|TV-Y7|200|',
     "TV-G": b'us-tv|TV-G|300|',

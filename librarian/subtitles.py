@@ -158,14 +158,14 @@ def search(filename, languages, config, providers=None):
     try:
       return subliminal.compute_score(st, video)
     except Exception as e:
-      logger.error('subliminal.compute_score() returned an error: %s', e)
+      logger.warn('subliminal.compute_score() returned an error: %s', e)
       return 0
 
   def _matches(st):
     try:
       return st.get_matches(video)
     except Exception as e:
-      logger.error('subliminal.get_matches() returned an error: %s', e)
+      logger.warn('subliminal.get_matches() returned an error: %s', e)
       return ['??']
 
   # sort by language and then by score

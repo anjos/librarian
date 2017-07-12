@@ -362,9 +362,17 @@ def _plan_audio(streams, languages, ios_audio, mapping):
 def _detect_srt_encoding(fname):
   '''Tries to detect the most pertinent encoding for the input SRT file'''
 
+  translator_matrix = {
+      'UTF-8-SIG': 'UTF-8',
+      }
+
   with open(fname, 'rb') as f:
     ret = chardet.detect(f.read())
-    return ret['encoding'].upper() if ret['encoding'] is not None else None
+    if ret['encoding'] is not None:
+      ret = ret['encoding'].upper()
+      return translator_matrix.get(ret, ret)
+
+  return None
 
 
 def _plan_subtitles(streams, filename, languages, mapping, show=None):
@@ -625,7 +633,6 @@ def options(infile, outfile, planning, threads=0):
     else: #use default
       bitrate = channels * 64
       return ['aac', '-b:%d' % index, '%dk' % bitrate]
-
 
   # organizes the input stream by index
   keeping = [(k,v) for k,v in planning.items() if v]
