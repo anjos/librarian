@@ -241,18 +241,37 @@ def download(filename, results, languages, config, providers=None):
   '''
 
   to_download = []
+  lang_download = []
   for lang in languages:
     if not results[lang]:
       logger.error('Did not find any subtitle for language `%s\'', lang)
       continue
-    to_download.append(results[lang][0][1])
+    lang_download.append(lang)
+    logger.info('Scheduling download subtitle for language `%s%s\' ' \
+        'from `%s\' (score: %d)', lang.alpha2,
+        '-%s' % lang.country.alpha2.lower() if lang.country else '',
+        results[lang][0][1].provider_name, results[lang][0][0])
+    to_download.append(results[lang].pop(0)[1])
 
   # if you get at this point, we can download the subtitle
-  logger.info('Downloading best subtitles...')
+  logger.info('Downloading subtitles...')
 
-  # downloads only the contents of the subtitles
-  subliminal.download_subtitles(to_download, subliminal.core.ProviderPool,
-      providers=providers, provider_configs=config)
+  # checks if the download was successful, otherwise, tries the next sub
+  while not all([z.content for z in to_download]):
+
+    subliminal.download_subtitles(to_download, subliminal.core.ProviderPool,
+              providers=providers, provider_configs=config)
+
+    for k, (lang, dl) in enumerate(zip(lang_download, to_download)):
+      if not dl.content:
+        logger.warn('Contents for subtitle for language `%s%s\' where not ' \
+            'downloaded from `%s\' for an unknown reason', lang.alpha2,
+          '-%s' % lang.country.alpha2.lower() if lang.country else '',
+          dl.provider_name)
+        if results[lang]: #there are still some to consider
+          to_try = results[lang].pop(0)
+          logger.info('Trying next subtitle in list, with score=%d', to_try[0])
+          to_download[k] = to_try[1]
 
   # stores the subtitles side-by-side with the movie
   logger.info('Saving subtitles in UTF-8 encoding...')
