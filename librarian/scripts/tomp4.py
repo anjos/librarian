@@ -24,13 +24,18 @@ Options:
                         stream planning for the output video. This is a good
                         debugging resource and can help you understand how the
                         program operates
-  -l, --language=<lang> Defines the languages of your preference. Audio and
+  -l, --language=<lang> Defines the languages of your preference. May be used
+                        multiple times. You may use the ISO-639 3-letter
+                        standard, e.g. "deu" or "ger" for german, a 2-letter
+                        standard, e.g. "es" for spain, or a 2-letter + country
+                        code, e.g. "pt-BR" for brazilian portuguese. Audio and
                         subtitle streams will be organized using this order.
                         The language in front of your list defines the default
                         audio stream. Subtitle streams won't be shown by
-                        default, unless you specify it with -s.
+                        default, unless you specify it with "--show=<lang>".
   -s, --show=<lang>     If set, then subtitles for the provided language will
-                        be shown by default
+                        be shown by default. The encoding should be the same as
+                        for "--language=<lang>".
   -i, --ios-audio       If set and if the first programmed audio stream is not
                         stereo (i.e., has 2-channels), then a second audio
                         stream with 2-channels will be created in AAC format.
@@ -48,12 +53,12 @@ Examples:
      italian audio/subtitle streams (if available), display french subtitles by
      default by default, create iOS audio stream:
 
-     $ %(prog)s -vv -l eng -l fre -l ita -s fre -i file.mkv file.mp4
+     $ %(prog)s -vv -l eng -l fre -l pt-br -s fre -i file.mkv file.mp4
 
-  2. Re-convert mp4 file, use hindi as main language, preserve english
-     audio/subtitles. No default subtitles shown:
+  2. Re-convert mp4 file, use (canadian) french as main language, preserve
+     english audio/subtitles. No default subtitles shown:
 
-     $ %(prog)s -vv -l hin -l eng file.mp4 other-file.mp4
+     $ %(prog)s -vv -l fr-ca -l eng file.mp4 other-file.mp4
 
 """
 
@@ -83,8 +88,13 @@ def main(user_input=None):
       version=completions['version'],
       )
 
-  from ..utils import setup_logger
+  from ..utils import setup_logger, as_language
   logger = setup_logger('librarian', args['--verbose'])
+
+  # normalize languages
+  args['--language'] = [as_language(k) for k in args['--language']]
+  args['--show'] = args['--show'] if args['--show'] is None else \
+      as_language(args['--show'])
 
   from .. import convert
 

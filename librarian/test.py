@@ -277,6 +277,52 @@ def test_ffprobe():
   nose.tools.eq_(fmt.attrib['bit_rate'], '551193')
 
 
+def test_language_conversion():
+
+  def _check(lang, a3, a3b, a2, name, country):
+    l = utils.as_language(lang)
+    nose.tools.eq_(l.alpha3, a3) #language specific name
+    nose.tools.eq_(l.alpha3b, a3b) #international name (english)
+    nose.tools.eq_(l.alpha2, a2) #2-letter code
+    nose.tools.eq_(l.name, name) #2-letter code
+    nose.tools.eq_(l.country, country) #abbreviation of country name
+
+  _check('por',   'por', 'por', 'pt', 'Portuguese', None)
+  _check('pt-br', 'por', 'por', 'pt', 'Portuguese', 'BR')
+  _check('deu',   'deu', 'ger', 'de', 'German',     None)
+  _check('ger',   'deu', 'ger', 'de', 'German',     None)
+  _check('fre',   'fra', 'fre', 'fr', 'French',     None)
+  _check('fra',   'fra', 'fre', 'fr', 'French',     None)
+  _check('eng',   'eng', 'eng', 'en', 'English',    None)
+  _check('en-us', 'eng', 'eng', 'en', 'English',    'US')
+  _check('en',    'eng', 'eng', 'en', 'English',    None)
+  _check('en-gb', 'eng', 'eng', 'en', 'English',    'GB')
+  _check('spa',   'spa', 'spa', 'es', 'Spanish',    None)
+  _check('es-es', 'spa', 'spa', 'es', 'Spanish',    'ES')
+
+  # special case for an undetermined language
+  l = utils.as_language('und')
+  nose.tools.eq_(l.alpha3, 'und') #language specific name
+  nose.tools.eq_(l.alpha3b, 'und') #international name (english)
+  nose.tools.eq_(l.name, 'Undetermined') #2-letter code
+  nose.tools.eq_(l.country, None)
+
+
+def test_language_acronyms():
+
+  def _check(lang, acronyms):
+    l = utils.as_language(lang)
+    nose.tools.eq_(utils.language_acronyms(l), acronyms)
+
+  _check('por',   ['pt', 'por'])
+  _check('pt-br', ['pt-BR', 'pt-br', 'ptBR', 'ptbr', 'pt', 'por'])
+  _check('eng',   ['en', 'eng'])
+  _check('en-us', ['en-US', 'en-us', 'enUS', 'enus', 'en', 'eng'])
+  _check('en-gb', ['en-GB', 'en-gb', 'enGB', 'engb', 'en', 'eng'])
+  _check('fr-CA', ['fr-CA', 'fr-ca', 'frCA', 'frca', 'fr', 'fre', 'fra'])
+  _check('deu', ['de', 'ger', 'deu'])
+
+
 def test_planning_mkv_1():
 
   # organization of the test file (french original movie with default english
@@ -300,8 +346,9 @@ def test_planning_mkv_1():
       os.path.join('data', 'mkv_1', 'movie.mkv'))
   probe.find('format').attrib['filename'] = moviefile
 
-  planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True,
-      default_subtitle_language='eng')
+  languages = [utils.as_language(k) for k in ['en-gb', 'fra']]
+  planning = convert.plan(probe, languages=languages, ios_audio=True,
+      default_subtitle_language=languages[0])
   keeping = [(k,v) for k,v in planning.items() if v]
   deleting = [(k,v) for k,v in planning.items() if not v]
   sorted_planning = sorted(keeping, key=lambda k: k[1]['index'])
@@ -326,6 +373,8 @@ def test_planning_mkv_1():
   nose.tools.eq_(audio.attrib['index'], '2')
   nose.tools.eq_(opts['index'], 1)
   nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(convert._get_stream_language(audio).alpha3b,
+      languages[0].alpha3b)
   nose.tools.eq_(opts['disposition'], 'default')
 
   # the 3rd stream should be the french dubbed version, not in AAC encoded
@@ -336,14 +385,17 @@ def test_planning_mkv_1():
   nose.tools.eq_(audio.attrib['index'], '1')
   nose.tools.eq_(opts['index'], 2)
   nose.tools.eq_(opts['codec'], 'aac')
+  nose.tools.eq_(convert._get_stream_language(audio).alpha3b,
+      languages[1].alpha3b)
   nose.tools.eq_(opts['disposition'], 'none')
 
   # the 4th stream should be an external SRT subtitle in english
   subt, opts = sorted_planning[3]
   assert isinstance(subt, six.string_types)
+  assert subt.endswith('en-GB.srt')
   nose.tools.eq_(opts['index'], 3)
   nose.tools.eq_(opts['codec'], 'mov_text')
-  nose.tools.eq_(opts['language'], 'eng')
+  nose.tools.eq_(opts['language'], languages[0])
   nose.tools.eq_(opts['disposition'], 'default')
 
 
@@ -372,7 +424,8 @@ def test_planning_mkv_2():
       os.path.join('data', 'mkv_2', 'movie.mkv'))
   probe.find('format').attrib['filename'] = moviefile
 
-  planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True)
+  languages = [utils.as_language(k) for k in ['eng', 'fra']]
+  planning = convert.plan(probe, languages=languages, ios_audio=True)
   keeping = [(k,v) for k,v in planning.items() if v]
   deleting = [(k,v) for k,v in planning.items() if not v]
   sorted_planning = sorted(keeping, key=lambda k: k[1]['index'])
@@ -392,6 +445,7 @@ def test_planning_mkv_2():
   nose.tools.eq_(audio.attrib['codec_type'], 'audio')
   assert 'aac' in audio.attrib['codec_name']
   nose.tools.eq_(audio.attrib['channels'], '6')
+  nose.tools.eq_(convert._get_stream_language(audio), languages[0])
   nose.tools.eq_(opts['index'], 1)
   nose.tools.eq_(opts['codec'], 'copy')
   nose.tools.eq_(opts['disposition'], 'default')
@@ -401,6 +455,7 @@ def test_planning_mkv_2():
   nose.tools.eq_(audio.attrib['codec_type'], 'audio')
   assert 'aac' in audio.attrib['codec_name']
   nose.tools.eq_(audio.attrib['index'], '3')
+  nose.tools.eq_(convert._get_stream_language(audio), languages[0])
   nose.tools.eq_(opts['index'], 2)
   nose.tools.eq_(opts['codec'], 'copy')
   nose.tools.eq_(opts['disposition'], 'none')
@@ -411,6 +466,7 @@ def test_planning_mkv_2():
   nose.tools.eq_(audio.attrib['index'], '2')
   nose.tools.eq_(opts['index'], 3)
   nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(convert._get_stream_language(audio), languages[1])
   nose.tools.eq_(opts['disposition'], 'none')
 
   # the 5th stream should be an external SRT subtitle in english
@@ -418,13 +474,14 @@ def test_planning_mkv_2():
   assert isinstance(subt, six.string_types)
   nose.tools.eq_(opts['index'], 4)
   nose.tools.eq_(opts['codec'], 'mov_text')
-  nose.tools.eq_(opts['language'], 'eng')
+  nose.tools.eq_(opts['language'], languages[0])
   nose.tools.eq_(opts['disposition'], 'none')
 
   # the 6th stream should be an internal SRT subtitle in french
   subt, opts = sorted_planning[5]
   nose.tools.eq_(opts['index'], 5)
   nose.tools.eq_(opts['codec'], 'mov_text')
+  nose.tools.eq_(opts['language'], languages[1])
   nose.tools.eq_(opts['disposition'], 'none')
 
 
@@ -451,8 +508,9 @@ def test_options_mkv_1():
       os.path.join('data', 'mkv_1', 'movie.mkv'))
   probe.find('format').attrib['filename'] = moviefile
 
-  planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True,
-      default_subtitle_language='eng')
+  languages = [utils.as_language(k) for k in ['en-GB', 'fra']]
+  planning = convert.plan(probe, languages=languages, ios_audio=True,
+      default_subtitle_language=languages[0])
 
   #convert.print_plan(planning)
 
@@ -468,7 +526,7 @@ def test_options_mkv_1():
       '-threads', '2',
       '-fix_sub_duration',
       '-i', moviefile,
-      '-i', os.path.splitext(moviefile)[0] + '.eng.srt',
+      '-i', os.path.splitext(moviefile)[0] + '.en-GB.srt',
       '-map', '0:0',
       '-map', '0:2',
       '-map', '0:1',
@@ -477,13 +535,13 @@ def test_options_mkv_1():
       '-codec:0', 'copy',
       '-disposition:1', 'default',
       '-codec:1', 'copy',
-      '-metadata:s:1', 'language=eng',
+      '-metadata:s:1', 'language=%s' % languages[0].alpha3b,
       '-disposition:2', 'none',
       ] + aac_encoder + [
-      '-metadata:s:2', 'language=fre',
+      '-metadata:s:2', 'language=%s' % languages[1].alpha3b,
       '-disposition:3', 'default',
       '-codec:3', 'mov_text',
-      '-metadata:s:3', 'language=eng',
+      '-metadata:s:3', 'language=%s' % languages[0].alpha3b,
       '-movflags', '+faststart',
       os.path.splitext(moviefile)[0] + '.mp4',
       ]
@@ -516,7 +574,8 @@ def test_options_mkv_2():
       os.path.join('data', 'mkv_2', 'movie.mkv'))
   probe.find('format').attrib['filename'] = moviefile
 
-  planning = convert.plan(probe, languages=['eng', 'fre'], ios_audio=True)
+  languages = [utils.as_language(k) for k in ['eng', 'fra']]
+  planning = convert.plan(probe, languages=languages, ios_audio=True)
 
   output = os.path.splitext(moviefile)[0] + '.mp4'
   options = convert.options(moviefile, output, planning, threads=3)
@@ -527,7 +586,7 @@ def test_options_mkv_2():
       '-threads', '3',
       '-fix_sub_duration',
       '-i', moviefile,
-      '-i', os.path.splitext(moviefile)[0] + '.eng.srt',
+      '-i', os.path.splitext(moviefile)[0] + '.en.srt',
       '-map', '0:0', #video - copy
       '-map', '0:1', #eng audio - copy (6 chan)
       '-map', '0:3', #ios audio - copy
@@ -536,21 +595,21 @@ def test_options_mkv_2():
       '-map', '0:4', #fre subtitles - copy
       '-disposition:0', 'default',
       '-codec:0', 'copy',
-      '-disposition:1', 'default',
+      '-disposition:1', 'default', #main english 5.1 DTS
       '-codec:1', 'copy',
-      '-metadata:s:1', 'language=eng', #main english 5.1 DTS
-      '-disposition:2', 'none',
+      '-metadata:s:1', 'language=%s' % languages[0].alpha3b,
+      '-disposition:2', 'none', #iOS english, stereo
       '-codec:2', 'copy',
-      '-metadata:s:2', 'language=eng', #iOS english, stereo
-      '-disposition:3', 'none',
+      '-metadata:s:2', 'language=%s' % languages[0].alpha3b,
+      '-disposition:3', 'none', #french dubbed
       '-codec:3', 'copy',
-      '-metadata:s:3', 'language=fre', #french dubbed
-      '-disposition:4', 'none',
+      '-metadata:s:3', 'language=%s' % languages[1].alpha3b,
+      '-disposition:4', 'none', #subtitles in english
       '-codec:4', 'mov_text',
-      '-metadata:s:4', 'language=eng', #subtitles in english
-      '-disposition:5', 'none',
+      '-metadata:s:4', 'language=%s' % languages[0].alpha3b,
+      '-disposition:5', 'none', #subtitles in french
       '-codec:5', 'mov_text',
-      '-metadata:s:5', 'language=fre', #subtitles in french
+      '-metadata:s:5', 'language=%s' % languages[1].alpha3b,
       '-movflags', '+faststart',
       os.path.splitext(moviefile)[0] + '.mp4',
       ]
@@ -640,18 +699,18 @@ def test_subtitle_search():
 
   p = '/path/to/file/Alien.1979.Directors.Cut.Bluray.1080p.DTS-HD.x264-Grym.mkv'
   providers = ['podnapisi']
-  languages = ['en', 'fre']
+  languages = [utils.as_language(k) for k in ['en', 'fre']]
   config = subtitles.setup_subliminal()
   results = subtitles.search(p, languages, config, providers=providers)
-  assert len(results['en']) > 0
-  assert len(results['fre']) > 0
+  assert len(results[languages[0]]) > 0
+  assert len(results[languages[1]]) > 0
 
 
 def test_subtitle_download():
 
   tempdir = tempfile.mkdtemp()
   providers = ['podnapisi'] #does not need password setup
-  languages = ['en', 'fre']
+  languages = [utils.as_language(k) for k in ['en', 'fre']]
 
   try:
     n = 'Alien.1979.Directors.Cut.Bluray.1080p.DTS-HD.x264-Grym.mkv'

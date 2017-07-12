@@ -69,10 +69,6 @@ def setup_subliminal(user_provided=None):
       the application command-line, pass it here. See its description above.
 
 
-  Raises:
-
-    RuntimeError: In case it cannot find a proper API key for TMDB
-
   '''
 
   config = None
@@ -104,7 +100,8 @@ def setup_subliminal(user_provided=None):
         replace_existing_backend=True)
     return _associate(config)
 
-  raise RuntimeError('Cannot setup subtitle provider credentials')
+  logger.warn('No subtitle setup was provided - this may limit your search')
+  return {}
 
 
 def _get_video(filename):
@@ -126,11 +123,12 @@ def search(filename, languages, config, providers=None):
 
     filename (str): Search subtitles for a given file on the provided languages
 
-    languages (list): Defines the languages of your preference. Language
-      specification may be provided with 3-character or 2(+2)-character strings
-      (e.g.  "fre", "en" or "pt-br"). Subtitles for these languages will be
-      downloaded and organized following an english-based 3-character language
-      encoding convention (ISO 639-3).
+    languages (list): Defines the languages of your preference. Each language
+      should be an object of type :py:class:`babelfish.Language`. Subtitles for
+      these languages will be downloaded and organized following an
+      2-character english-based language encoding convention (ISO 639-3),
+      possibily with the contry code attached (e.g. "pt-BR", if one is
+      available.
 
     config (dict): A dictionary where the keys represent the various providers
       available and the values correspond to dictionaries with keyword-argument
@@ -150,16 +148,9 @@ def search(filename, languages, config, providers=None):
 
   video = _get_video(filename)
 
-  _languages = []
-  for k in languages:
-    if len(k) == 3: #ISO-639-3
-      _languages.append(babelfish.Language.fromalpha3b(k))
-    else: #trie IETF conversion
-      _languages.append(babelfish.Language.fromietf(k))
-
   # call APIs once
   logger.info('Contacting subtitle providers...')
-  subtitles = subliminal.list_subtitles([video], set(_languages),
+  subtitles = subliminal.list_subtitles([video], set(languages),
       subliminal.core.ProviderPool, providers=providers,
       provider_configs=config)
 
@@ -172,10 +163,10 @@ def search(filename, languages, config, providers=None):
   # sort by language and then by score
   logger.info('Sorting subtitles by score...')
   retval = {}
-  for k,a in zip(_languages, languages):
+  for k in languages:
     tmp = [(_score(l), l, _matches(l)) for l in subtitles[video] \
         if l.language == k]
-    retval[a] = sorted(tmp, key=lambda x: x[0], reverse=True)
+    retval[k] = sorted(tmp, key=lambda x: x[0], reverse=True)
 
   return retval
 
@@ -191,11 +182,12 @@ def print_results(results, languages, limit=None):
       subtitles found on different providers as a result from calling
       :py:func:`search_subtitles`.
 
-    languages (list): Defines the languages of your preference. Language
-      specification may be provided with 3-character or 2(+2)-character strings
-      (e.g.  "fre", "en" or "pt-br"). Subtitles for these languages will be
-      downloaded and organized following an english-based 3-character language
-      encoding convention (ISO 639-3).
+    languages (list): Defines the languages of your preference. Each language
+      should be an object of type :py:class:`babelfish.Language`. Subtitles for
+      these languages will be downloaded and organized following an
+      2-character english-based language encoding convention (ISO 639-3),
+      possibily with the contry code attached (e.g. "pt-BR", if one is
+      available.
 
     limit (:py:class:`int`, optional): Define the maximum number of entries to
       output. If not defined or set to ``None``, then prints all entries.
@@ -223,11 +215,12 @@ def download(filename, results, languages, config, providers=None):
       subtitles found on different providers as a result from calling
       :py:func:`search_subtitles`.
 
-    languages (list): Defines the languages of your preference. Language
-      specification may be provided with 3-character or 2(+2)-character strings
-      (e.g.  "fre", "en" or "pt-br"). Subtitles for these languages will be
-      downloaded and organized following an english-based 3-character language
-      encoding convention (ISO 639-3).
+    languages (list): Defines the languages of your preference. Each language
+      should be an object of type :py:class:`babelfish.Language`. Subtitles for
+      these languages will be downloaded and organized following an
+      2-character english-based language encoding convention (ISO 639-3),
+      possibily with the contry code attached (e.g. "pt-BR", if one is
+      available.
 
     config (dict): A dictionary where the keys represent the various providers
       available and the values correspond to dictionaries with keyword-argument

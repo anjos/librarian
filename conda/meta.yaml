@@ -38,6 +38,7 @@ requirements:
     - pexpect
     - tqdm
     - chardet
+    - babelfish
 
 test:
   imports:

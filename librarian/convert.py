@@ -17,6 +17,9 @@ from xml.etree import ElementTree
 import logging
 logger = logging.getLogger(__name__)
 
+from .utils import as_language, language_acronyms, uniq
+UNDETERMINED_LANGUAGE = as_language('und')
+
 
 def ffmpeg_codec_capabilities():
   '''Checks if ffmpeg was compiled with a specific codec returns capabilities
@@ -223,8 +226,8 @@ def _get_stream_language(stream):
   tags = stream.findall('tag')
   lang = [t for t in tags if t.attrib['key'] == 'language']
   if lang:
-    return lang[0].attrib['value']
-  return 'und' #undefined, ffprobe standard
+    return as_language(lang[0].attrib['value'])
+  return UNDETERMINED_LANGUAGE
 
 
 def _get_default_audio_stream(streams, languages):
@@ -237,12 +240,12 @@ def _get_default_audio_stream(streams, languages):
       if l == _get_stream_language(s):
         if l != languages[0]:
           logger.warn('Could not find audio stream in ``%s\' - ' \
-              'using language `%s\' instead', languages[0], l)
+              'using language `%s\' instead', languages[0].alpha3b, l.alpha3b)
         return s
 
   # if you get to this point, there is no audio stream that actually statisfies
   # your request. we then consider the "default" audio stream to be the one
-  return _get_default_stream(audio_streams, 'audio')
+  return _get_default_stream(streams, 'audio')
 
 
 def _plan_audio(streams, languages, ios_audio, mapping):
@@ -255,13 +258,12 @@ def _plan_audio(streams, languages, ios_audio, mapping):
       but there may be many
 
     languages (list, tuple): The list of audio streams to retain according to
-      language and in order of preference. Languages should be encoded using a
-      3-character string (ISO 639 language codes). The audio languages that are
-      available on the stream will be selected and organized according to this
-      preference. The main audio stream of the file will be considered to be
-      the first language and will make up audio[0] (and audio[1] if
-      ``ios_audio`` is set to ``True``). The following audio tracks will be
-      organized as defined.
+      language and in order of preference. Languages are objects of type
+      :py:class:`babelfish.Language`. The audio languages that are available on
+      the stream will be selected and organized according to this preference.
+      The main audio stream of the file will be considered to be the first
+      language and will make up audio[0] (and audio[1] if ``ios_audio`` is set
+      to ``True``). The following audio tracks will be organized as defined.
 
     ios_audio (:py:class:`bool`, optional): If set to ``True``, then audio[1]
       will contain a stereo AC3 encoded track which is suitable to play on iOS
@@ -271,12 +273,14 @@ def _plan_audio(streams, languages, ios_audio, mapping):
 
   Returns:
 
-    str: The default audio language of the original movie file. This is a
-    3-character string following the ISO 639 specifications.
+    babelfish.Language: The default audio language of the original movie file.
 
   '''
 
   audio_streams = _get_streams(streams, 'audio')
+
+  # creates a list of languages w/o country codes
+  languages = [as_language(l.alpha3b) for l in languages]
 
   # now, let's handle the default audio bands
   default_audio = _get_default_audio_stream(audio_streams, languages)
@@ -311,7 +315,7 @@ def _plan_audio(streams, languages, ios_audio, mapping):
       logger.info('iOS audio stream is encoded in %s (channels = %s) - ' \
           'transcoding to aac, profile = LC, channels = 2, language = %s',
           default_audio.attrib['codec_name'], default_audio.attrib['channels'],
-          default_lang)
+          default_lang.alpha3b)
       mapping['__ios__'] = {'original': default_audio}
       mapping['__ios__']['index'] = 2
       mapping['__ios__']['codec'] = 'aac'
@@ -325,7 +329,7 @@ def _plan_audio(streams, languages, ios_audio, mapping):
 
   # remove anything that is in the main language
   secondary_audio = [s for s in secondary_audio \
-      if _get_stream_language(s) not in ('und', default_lang)]
+      if _get_stream_language(s) not in (UNDETERMINED_LANGUAGE, default_lang)]
 
   # re-organize the input languages to that the default language, which already
   # has 1 or 2 streams guaranteed, does not reappear
@@ -377,16 +381,16 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
       final MP4 file. Subtitles are encoded using ``mov_text``.
 
     languages (list, tuple): The list of all subtitle streams to retain
-      according to language, in order of preference. Languages should be
-      encoded using a 3-character string (ISO 639 language codes). For subtitle
-      tracks, all tracks will be off by default (unless ``show`` is set). The
-      order of tracks is defined by this variable.
+      according to language, in order of preference. Languages are objects of
+      type :py:class:`babefish.Language`. For subtitle tracks, all tracks will
+      be off by default (unless ``show`` is set). The order of tracks is
+      defined by this variable.
 
     mapping (dict): Where to place the planning
 
-    show (:py:class:`str`, optional): The 3-character ISO 639 specification of
-      a subtitle language to show by default. If not set, then don't display
-      any subtitle by default.
+    show (:py:class:`babelfish.Language`, optional): The language of subtitles
+      to display by default. If not set, then don't display any subtitle by
+      default.
 
   '''
 
@@ -403,7 +407,7 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
   # language is not among ``languages``, add it.
   if show is not None:
     if show not in languages:
-      languages = _uniq([show] + languages)
+      languages = uniq([show] + languages)
   curr_index = len([(k,v) for k,v in mapping.items() if v])
 
   for k in languages:
@@ -411,7 +415,7 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
     for s in subtitle_streams:
       tags = s.findall('tag')
       lang = _get_stream_language(s)
-      if lang == k:
+      if lang.alpha3b == k.alpha3b: #ignore country codes as per mp4 standards
         # incorporate stream into the output file
         mapping[s]['index'] = curr_index
         mapping[s]['disposition'] = 'default' if show == k else 'none'
@@ -426,15 +430,18 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
 
     # if you get at this point, it is because we never entered the if clause
     # in this case, look for an external subtitle file on the target language
-    candidate = os.path.splitext(filename)[0] + '.' + k + '.srt'
-    if os.path.exists(candidate):
-
-      mapping[candidate] = {'index': curr_index}
-      curr_index += 1
-      mapping[candidate]['disposition'] = 'default' if show == k else 'none'
-      mapping[candidate]['codec'] = 'mov_text'
-      mapping[candidate]['language'] = k
-      mapping[candidate]['encoding'] = _detect_srt_encoding(candidate)
+    for var in language_acronyms(k):
+      candidate = os.path.splitext(filename)[0] + '.' + var + '.srt'
+      if os.path.exists(candidate):
+        logger.info('Using external SRT file `%s\' as `%s\' subtitle input',
+            candidate, k.alpha3b)
+        mapping[candidate] = {'index': curr_index}
+        curr_index += 1
+        mapping[candidate]['disposition'] = 'default' if show == k else 'none'
+        mapping[candidate]['codec'] = 'mov_text'
+        mapping[candidate]['language'] = k
+        mapping[candidate]['encoding'] = _detect_srt_encoding(candidate)
+        break
 
     # remove any used stream so we don't iterate over it again
     subtitle_streams = [s for s in subtitle_streams if s != used_stream]
@@ -442,25 +449,6 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
     # remove any other stream that matches the same language
     subtitle_streams = [s for s in subtitle_streams \
         if _get_stream_language(s) != k]
-
-
-def _uniq(seq, idfun=None):
-  """Very fast, order preserving uniq function"""
-
-  # order preserving
-  if idfun is None:
-      def idfun(x): return x
-  seen = {}
-  result = []
-  for item in seq:
-      marker = idfun(item)
-      # in old Python versions:
-      # if seen.has_key(marker)
-      # but in new ones:
-      if marker in seen: continue
-      seen[marker] = 1
-      result.append(item)
-  return result
 
 
 def plan(probe, languages, default_subtitle_language=None, ios_audio=True):
@@ -508,18 +496,17 @@ def plan(probe, languages, default_subtitle_language=None, ios_audio=True):
       input file (through :py:func:`probe`)
 
     languages (list, tuple): The list of secondary audio and subtitle streams
-      to retain, in order of preference. Languages should be encoded using a
-      3-character string (ISO 639 language codes). The audio languages that are
-      available on the stream will be selected and organized according to this
-      preference. The main audio stream of the file will be kept and will make
-      up audio[0] and audio[1] (if ``ios_audio`` is set to ``True``). The
-      following audio tracks will be organized as defined. For subtitle tracks,
-      all tracks will be off by default. The order of tracks is defined by this
-      variable.
+      to retain, in order of preference. Languages are objects of type
+      :py:class:`babelfish.Language`. The audio languages that are available on
+      the stream will be selected and organized according to this preference.
+      The main audio stream of the file will be kept and will make up audio[0]
+      and audio[1] (if ``ios_audio`` is set to ``True``). The following audio
+      tracks will be organized as defined. For subtitle tracks, all tracks will
+      be off by default. The order of tracks is defined by this variable.
 
-    default_subtitle_language (:py:class:`str`, optional): The 3-character ISO
-      639 specification of a subtitle language to show by default. If not set,
-      then don't display any subtitle by default.
+    default_subtitle_language (:py:class:`babelfish.Language`, optional):
+      Language of subtitles to show by default. If not set, then don't display
+      any subtitle by default.
 
     ios_audio (:py:class:`bool`, optional): If set to ``True``, then audio[1]
       will contain a stereo AC3 encoded track which is suitable to play on iOS
@@ -535,7 +522,7 @@ def plan(probe, languages, default_subtitle_language=None, ios_audio=True):
 
   '''
 
-  languages = _uniq(languages)
+  languages = uniq(languages)
 
   mapping = {}
   streams = list(probe.iter('stream'))
@@ -575,7 +562,7 @@ def print_plan(plan):
     if not v: #deleting
       print('  %s stream [%s] lang=%s codec=%s -> [deleted]' % \
           (k.attrib['codec_type'], k.attrib['index'],
-            _get_stream_language(k), k.attrib['codec_name']))
+            _get_stream_language(k).alpha3b, k.attrib['codec_name']))
       continue
 
     if isinstance(k, six.string_types):
@@ -584,12 +571,12 @@ def print_plan(plan):
         print('  %s stream [%s] lang=%s codec=%s -> [%d] codec=%s (iOS)' % \
             (v['original'].attrib['codec_type'],
               v['original'].attrib['index'],
-              _get_stream_language(v['original']),
+              _get_stream_language(v['original'].alpha3b),
               v['original'].attrib['codec_name'],
               v['index'], v['codec']))
       else: #it is a subtitle in srt format
         print('  (%s) lang=%s encoding=%s -> [%d] codec=%s %s' % \
-            (os.path.basename(k), v['language'],
+            (os.path.basename(k), v['language'].alpha3b,
               v['encoding'] if v['encoding'] is not None else '??',
               v['index'], v['codec'],
             '**' if v['disposition'] == 'default' else ''))
@@ -598,14 +585,14 @@ def print_plan(plan):
       if k.attrib['codec_type'] in ('video', 'subtitle'):
         print('  %s stream [%s] lang=%s codec=%s -> [%d] codec=%s %s' % \
             (k.attrib['codec_type'], k.attrib['index'],
-              _get_stream_language(k), k.attrib['codec_name'],
+              _get_stream_language(k).alpha3b, k.attrib['codec_name'],
               v['index'], v['codec'],
               '**' if v['disposition'] == 'default' else ''))
       elif k.attrib['codec_type'] == 'audio':
         print('  %s stream [%s] lang=%s codec=%s channels=%s -> [%d] '\
             'codec=%s %s' % \
             (k.attrib['codec_type'], k.attrib['index'],
-              _get_stream_language(k), k.attrib['codec_name'],
+              _get_stream_language(k).alpha3b, k.attrib['codec_name'],
               k.attrib['channels'], v['index'], v['codec'],
               '**' if v['disposition'] == 'default' else ''))
 
@@ -667,7 +654,7 @@ def options(infile, outfile, planning, threads=0):
                 '0.707*BL|FR<1.0*FR+0.707*FC+0.707*BR[iOS]' % \
                 v['original'].attrib['index'],
                 '-metadata:s:%d' % v['index'],
-                'language=%s' % _get_stream_language(v['original']),
+                'language=%s' % _get_stream_language(v['original']).alpha3b,
             ]
 
       else: #subtitle SRT to bring in
@@ -681,7 +668,7 @@ def options(infile, outfile, planning, threads=0):
             '-codec:%d' % v['index'],
             'mov_text',
             '-metadata:s:%d' % v['index'],
-            'language=%s' % v['language'],
+            'language=%s' % v['language'].alpha3b,
             ]
 
     else: # normal stream to be moved or transcoded
@@ -706,7 +693,7 @@ def options(infile, outfile, planning, threads=0):
       if kind in ('audio', 'subtitle'): #add language
         codopt += [
             '-metadata:s:%d' % v['index'],
-            'language=%s' % _get_stream_language(k),
+            'language=%s' % _get_stream_language(k).alpha3b,
             ]
 
   # replaces qtfaststart need

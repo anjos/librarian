@@ -29,6 +29,8 @@ setup(
       'pytvdbapi',
       'pexpect',
       'tqdm',
+      'chardet',
+      'babelfish',
       ],
 
     entry_points = {

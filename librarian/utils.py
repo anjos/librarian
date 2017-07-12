@@ -7,6 +7,7 @@
 import os
 import sys
 import logging
+import babelfish
 from six.moves import configparser
 
 import guessit
@@ -118,3 +119,93 @@ def guess(filename, fullpath=True):
     filename = os.path.basename(filename)
 
   return guessit.guessit(filename)
+
+
+def uniq(seq, idfun=None):
+  """Very fast, order preserving uniq function"""
+
+  # order preserving
+  if idfun is None:
+      def idfun(x): return x
+  seen = {}
+  result = []
+  for item in seq:
+      marker = idfun(item)
+      # in old Python versions:
+      # if seen.has_key(marker)
+      # but in new ones:
+      if marker in seen: continue
+      seen[marker] = 1
+      result.append(item)
+  return result
+
+
+def as_language(l):
+  '''Converts the language string into a :py:class:`babelfish.Language` object
+
+  This method tries a conversion using the following techniques:
+
+  1. Tries the IETF 3-letter standard
+  2. Tries an ISO 639 3-letter B standard
+  3. Finally, if everything else fails, tries a simple call to the base class
+     with the input string. An exception (from :py:mod:`babelfish`) is raised
+     in case of problems.
+
+
+  Parameters:
+
+    l (str): An ISO 639 3-letter string for the language to convert. This
+    method also accepts 2-letter or 2+2-letter identifiers
+
+
+  Returns:
+
+    babelfish.Language: A language object with the normalize language
+    definition
+
+
+  Raises:
+
+    ValueError: If it cannot convert the language
+
+  '''
+
+  try:
+    return babelfish.Language.fromietf(l)
+  except Exception:
+    pass
+
+  try:
+    return babelfish.Language.fromalpha3b(l)
+  except Exception:
+    return babelfish.Language(l)
+
+
+def language_acronyms(l):
+  '''Defines all possible language acronyms, more specific first
+
+
+  Parameters:
+
+    babelfish.Language: A language object
+
+
+  Returns:
+
+    list of str: Strings, in order of preference going from specific to general
+    language encodings
+
+  '''
+
+  retval = []
+  if l.country is not None:
+    a22 = l.alpha2 + '-' + l.country.alpha2
+    retval += [
+        a22,
+        a22.lower(),
+        a22.replace('-', ''),
+        a22.replace('-', '').lower(),
+        ]
+
+  # these are more generic, so go last
+  return uniq(retval + [l.alpha2, l.alpha3b, l.alpha3])

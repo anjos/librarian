@@ -11,11 +11,10 @@ Usage: %(prog)s [-v...] [--dry-run] [-l N] <file> <language> [<language>...]
 
 Arguments:
   <file>      Name of the file you'll be downloading subtitles for
-  <language>  Defines the languages of your preference. Language specification
-              may be provided with 3-character or 2(+2)-character strings (e.g.
-              "fre", "en" or "pt-br"). Subtitles for these languages will be
-              downloaded and organized following an english-based 3-character
-              language encoding convention (ISO 639-3).
+  <language>  Defines the languages of your preference. May be used multiple
+              times. You may use the ISO-639 3-letter standard, e.g. "deu" or
+              "ger" for german, a 2-letter standard, e.g. "es" for spain, or a
+              2-letter + country code, e.g. "pt-BR" for brazilian portuguese.
 
 
 Options:
@@ -35,14 +34,16 @@ Examples:
   1. Check potential subtitles in french for a movie:
 
      $ %(prog)s -vv file.mp4 fre
+     # files saved, if we succeed, will use 2-character code:
+     # - file.fr.srt
 
-  2. Download top-hits for subtitles in brazilian portuguese and french using a
+  2. Download top-hits for subtitles in brazilian portuguese and german using a
      2(+2)-character language definition:
 
-     $ %(prog)s -vv file.mp4 pt-br fr
-     # files saved, if we succeed, will use 3-character ISO 639-3 codes:
-     # - file.por.srt
-     # - file.fre.srt
+     $ %(prog)s -vv file.mp4 pt-br de
+     # files saved, if we succeed, will use 2-character code (+country)
+     # - file.pt-BR.srt
+     # - file.de.srt
 
 """
 
@@ -72,9 +73,12 @@ def main(user_input=None):
       version=completions['version'],
       )
 
-  from ..utils import setup_logger
+  from ..utils import setup_logger, as_language
   logger = setup_logger('librarian', args['--verbose'])
   #logger = setup_logger('subliminal', args['--verbose'])
+
+  # normalize languages
+  args['<language>'] = [as_language(k) for k in args['--language']]
 
   from .. import subtitles
   config = subtitles.setup_subliminal()
