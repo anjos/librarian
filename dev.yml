@@ -21,3 +21,4 @@ dependencies:
 - tqdm
 - chardet
 - babelfish
+- pysrt

@@ -359,7 +359,7 @@ def _plan_audio(streams, languages, ios_audio, mapping):
         if _get_stream_language(s) != k]
 
 
-def _detect_srt_encoding(fname):
+def detect_srt_encoding(fname):
   '''Tries to detect the most pertinent encoding for the input SRT file'''
 
   translator_matrix = {
@@ -448,7 +448,7 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
         mapping[candidate]['disposition'] = 'default' if show == k else 'none'
         mapping[candidate]['codec'] = 'mov_text'
         mapping[candidate]['language'] = k
-        mapping[candidate]['encoding'] = _detect_srt_encoding(candidate)
+        mapping[candidate]['encoding'] = detect_srt_encoding(candidate)
         break
 
     # remove any used stream so we don't iterate over it again

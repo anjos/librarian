@@ -39,6 +39,7 @@ requirements:
     - tqdm
     - chardet
     - babelfish
+    - pysrt
 
 test:
   imports:
@@ -49,6 +50,8 @@ test:
     - coverage
 
   commands:
+    - getsubs.py --help
+    - tomp4.py --help
     - retag_movie.py --help
     - retag_tvshow.py --help
     - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}

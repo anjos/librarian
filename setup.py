@@ -31,6 +31,7 @@ setup(
       'tqdm',
       'chardet',
       'babelfish',
+      'pysrt',
       ],
 
     entry_points = {

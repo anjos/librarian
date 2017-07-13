@@ -12,6 +12,7 @@ import pkg_resources
 from xml.etree import ElementTree
 import nose.tools
 from mutagen import mp4
+import pysrt
 
 from . import tmdb, tvdb, utils, convert, subtitles
 
@@ -725,3 +726,54 @@ def test_subtitle_download():
 
   finally:
     if os.path.exists(tempdir): shutil.rmtree(tempdir)
+
+
+def _compare_srt_times(t1, t2, diff=1):
+  '''Compares times up to a certain amount of milliseconds'''
+
+  assert abs((t1-t2).ordinal) < diff, '%s <> %s (>%d ms)' % (t1, t2, diff)
+
+
+def test_srt_resync_utf8():
+
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'srt', 'utf-8.srt'))
+
+  new_start = '00:00:45,367'
+  new_end = '01:36:57,900'
+  result = subtitles.resync_subtitles(filename, 3, new_start, 1327, new_end)
+
+  nose.tools.eq_(result[3].index, 4) #notice: index clearing worked
+  _compare_srt_times(result[3].start, new_start)
+  nose.tools.eq_(result[1327].index, 1328) #notice: index clearing worked
+  _compare_srt_times(result[1327].start, new_end)
+
+
+def test_srt_resync_bom_utf8():
+
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'srt', 'bom-utf-8.srt'))
+
+  new_start = '00:00:13,200'
+  new_end = '00:00:38,351'
+  result = subtitles.resync_subtitles(filename, 2, new_start, 6, new_end)
+
+  nose.tools.eq_(result[1].index, 2)
+  _compare_srt_times(result[1].start, new_start)
+  nose.tools.eq_(result[5].index, 6)
+  _compare_srt_times(result[5].start, new_end)
+
+
+def test_srt_resync_windows_1252():
+
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'srt', 'windows-1252.srt'))
+
+  new_start = '00:00:45,367'
+  new_end = '01:36:57,900'
+  result = subtitles.resync_subtitles(filename, 3, new_start, 1327, new_end)
+
+  nose.tools.eq_(result[3].index, 4) #notice: index clearing worked
+  _compare_srt_times(result[3].start, new_start)
+  nose.tools.eq_(result[1327].index, 1328) #notice: index clearing worked
+  _compare_srt_times(result[1327].start, new_end)

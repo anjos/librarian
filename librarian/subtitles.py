@@ -8,8 +8,11 @@ import os
 import logging
 import subliminal
 import babelfish
+import pysrt
+import chardet
 
 from .utils import load_config_section
+from .convert import detect_srt_encoding
 
 logger = logging.getLogger(__name__)
 
@@ -277,3 +280,109 @@ def download(filename, results, languages, config, providers=None):
   logger.info('Saving subtitles in UTF-8 encoding...')
   video = _get_video(filename)
   subliminal.save_subtitles(video, to_download, encoding='UTF-8')
+
+
+def resync_subtitles(fname, start_frame, start_time, end_frame, end_time):
+  '''Edits an SRT file to time shift subtitles
+
+  This function will time shift and compress/expand all subtitles timings in an
+  SRT file so that the subtitle with the given start frame starts on the
+  predefined time. Subsequent subtitles will be re-distributed proportionally
+  until the end frame, which will start on ``end_time``.
+
+  In order to implement that, we first calculate the compression/expansion
+  factor ratio "R" that will adjust the subtitles frequency. Then, at the new
+  compressed/expanded framework, we calculate the time shift "S" required to
+  put the start subtitle at the desired time. We then re-adjust all subtitles
+  respecting both the ratio "R" and the shift "S". In pseudo-code:
+
+  .. code-block:: python
+
+     R = (end_time - start_time) / (subs[end].start - subs[start].start)
+     S = start_time - (subs[start].start * R)
+     f = pysrt.SubRipFile(fname)
+     f.shift(R, S)
+
+  Once this operation is carried out, we resync subtitles so that frame numbers
+  in the file are consecutive and starting at one.
+
+
+  Parameters:
+
+    fname (str): Full path to the SRT file to edit
+
+    start_index (int): The number of the index (subtitle) to affect for the
+      ``start_time``. Notice this is **not** the relative position of the
+      subtitle within the SRT file, but rather the index assigned by the
+      original author. If a file starts with subtitle #1, then position ``[0]``
+      of the file will have ``.index == 1`` and that is the expected number
+      here.
+
+    start_time (str): The start time, expressed as a string in the format
+      "hh:mm:ss,MMM", from the start of the movie. Values after the comma
+      express milliseconds.
+
+    end_frame (int): The number of the frame (subtitle) to affect for the
+      ``end_time``. Notice this is **not** the relative position of the
+      subtitle within the SRT file, but rather the index assigned by the
+      original author. If a file ends with subtitle #1000, then position
+      ``[-1]`` of the file will have ``.index == 1000`` and that is the
+      expected number here, even if the overall number of entries in the file
+      is smaller than 1000.
+
+    end_time (str): The end time, expressed as a string in the format
+      "hh:mm:ss,MMM", from the start of the movie. Values after the comma
+      express milliseconds.
+
+
+  Returns:
+
+    pysrt.SubRipFile: Edited subrip file instance you can call ``save()`` on to
+    overwrite or export edited timings.
+
+
+  Raises:
+
+    AssertionError: in case the timings and frame numbers don't respect order
+    (i.e.: ``start_frame < end_frame && start_time < end_time``)
+
+  '''
+
+  assert start_frame < end_frame
+  start_time = pysrt.SubRipTime.coerce(start_time)
+  end_time   = pysrt.SubRipTime.coerce(end_time)
+  assert start_time < end_time
+
+  f = pysrt.open(fname, encoding=detect_srt_encoding(fname))
+
+  # organize subtitles by index
+  indexed = dict([(k.index, k) for k in f])
+
+  # get the actual indexes of the target frames, coerce time stamps
+  start_sub  = indexed[start_frame]
+  end_sub    = indexed[end_frame]
+  assert start_sub.end < end_sub.start
+
+  logger.info('Start frame #%d [pos=%d] %s --> %s (%s)', start_sub.index,
+      f.index(start_sub), start_sub.start, start_time, repr(start_sub.text))
+  logger.info('End frame #%d [pos=%d] %s --> %s (%s)', end_sub.index,
+      f.index(end_sub), end_sub.start, end_time, repr(end_sub.text))
+
+  # calculates the ratio factor "R"
+  new_window = (end_time - start_time).ordinal #in milliseconds
+  old_window = (end_sub.start - start_sub.start).ordinal #in milliseconds
+  R = float(new_window) / old_window
+  logger.info('Compression factor is %s', R)
+
+  # calculates the shift "S" using the "compressed"/"expanded" space
+  S = start_time - (start_sub.start * R)
+  logger.info('"Compressed/Expanded" time shift is %s', S)
+
+  # applies shift and expansion to all subtitles
+  f.shift(hours=S.hours, minutes=S.minutes, seconds=S.seconds,
+      milliseconds=S.milliseconds, ratio=R)
+
+  # re-adjusts indexes so f[0].index == 1 and f[-1].index == len(f)
+  f.clean_indexes()
+
+  return f
