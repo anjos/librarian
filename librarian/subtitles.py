@@ -8,8 +8,9 @@ import os
 import logging
 import subliminal
 import babelfish
-import pysrt
 import chardet
+import pysrt
+import six
 
 from .utils import load_config_section
 from .convert import detect_srt_encoding
@@ -243,6 +244,42 @@ def download(filename, results, languages, config, providers=None):
 
   '''
 
+  def _check_or_reset(s):
+    '''Checks if a subtitle is of type SRT, otherwise, resets it'''
+
+    try:
+      if s.content is None: return
+
+      # get a string representation of subtitles
+      srt = None
+      r = chardet.detect(s.content)
+      enc = r['encoding']
+      if enc is not None:
+        logger.info('Decoding subtitles from `%s\'', enc)
+        content = s.content.decode(encoding=enc)
+      else:
+        logger.warn('Cannot detect subtitle encoding - ignoring errors')
+        content = s.content.decode(errors='ignore')
+
+      # checks decoding
+      srt = pysrt.SubRipFile.from_string(content)
+      if not srt:
+        logger.warn('Discarding contents of subtitle: not parseable')
+        s.content = None
+        return
+
+      # if everything checks, re-write subtitles in utf-8
+      srt.clean_indexes()
+      buf = six.StringIO()
+      srt.write_into(buf)
+      s.content = buf.getvalue().encode(encoding='UTF-8')
+      s.encoding = 'utf-8'
+
+    except Exception as e:
+      logger.warn('Discarding contents of subtitle: %s', e)
+      s.content = None
+
+
   to_download = []
   lang_download = []
   for lang in languages:
@@ -265,10 +302,13 @@ def download(filename, results, languages, config, providers=None):
     subliminal.download_subtitles(to_download, subliminal.core.ProviderPool,
               providers=providers, provider_configs=config)
 
+    # checks the subtitle is in SRT format
+    for k in to_download: _check_or_reset(k)
+
     for k, (lang, dl) in enumerate(zip(lang_download, to_download)):
       if not dl.content:
         logger.warn('Contents for subtitle for language `%s%s\' where not ' \
-            'downloaded from `%s\' for an unknown reason', lang.alpha2,
+            'downloaded from `%s\'', lang.alpha2,
           '-%s' % lang.country.alpha2.lower() if lang.country else '',
           dl.provider_name)
         if results[lang]: #there are still some to consider
