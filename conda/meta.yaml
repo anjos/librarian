@@ -54,6 +54,7 @@ test:
     - tomp4.py --help
     - retag_movie.py --help
     - retag_tvshow.py --help
+    - resync_subs.py --help
     - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
 
 about:

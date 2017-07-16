@@ -40,6 +40,7 @@ setup(
         'retag_movie.py = librarian.scripts.retag_movie:main',
         'retag_tvshow.py = librarian.scripts.retag_tvshow:main',
         'tomp4.py = librarian.scripts.tomp4:main',
+        'resync_subs.py = librarian.scripts.resync_subs:main',
       ],
     },
 
