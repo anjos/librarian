@@ -270,6 +270,7 @@ def download(filename, results, languages, config, providers=None):
 
       # if everything checks, re-write subtitles in utf-8
       srt.clean_indexes()
+      srt.eol = os.linesep
       buf = six.StringIO()
       srt.write_into(buf)
       s.content = buf.getvalue().encode(encoding='UTF-8')
@@ -424,6 +425,7 @@ def resync_subtitles(fname, start_frame, start_time, end_frame, end_time):
 
   # re-adjusts indexes so f[0].index == 1 and f[-1].index == len(f)
   f.clean_indexes()
+  f.eol = os.linesep
 
   return f
 
@@ -450,4 +452,5 @@ def cleanup_subtitles(fname):
 
   f = pysrt.open(fname, encoding=detect_srt_encoding(fname))
   f.clean_indexes()
+  f.eol = os.linesep
   return f
