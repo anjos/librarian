@@ -15,6 +15,10 @@ build:
   entry_points:
     - retag_movie.py = librarian.scripts.retag_movie:main
     - retag_tvshow.py = librarian.scripts.retag_tvshow:main
+    - tomp4.py = librarian.scripts.tomp4:main
+    - getsubs.py = librarian.scripts.getsubs:main
+    - resync_subs.py = librarian.scripts.resync_subs:main
+    - cleanup_subs.py = librarian.scripts.cleanup_subs:main
   script_env:
     - TMDB_APIKEY
     - TVDB_APIKEY
@@ -50,11 +54,12 @@ test:
     - coverage
 
   commands:
-    - getsubs.py --help
     - tomp4.py --help
     - retag_movie.py --help
     - retag_tvshow.py --help
+    - getsubs.py --help
     - resync_subs.py --help
+    - cleanup_subs.py --help
     - nosetests -sv --with-coverage --cover-package={{ name }} {{ name }}
 
 about:

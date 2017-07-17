@@ -426,3 +426,28 @@ def resync_subtitles(fname, start_frame, start_time, end_frame, end_time):
   f.clean_indexes()
 
   return f
+
+
+def cleanup_subtitles(fname):
+  '''Edits an SRT file to re-index it, write in UTF-8 and clean it up
+
+  In this function, we resync subtitles so that frame numbers in the file are
+  consecutive and starting at one. The output file is always saved in UTF-8.
+
+
+  Parameters:
+
+    fname (str): Full path to the SRT file to edit
+
+
+  Returns:
+
+    pysrt.SubRipFile: Edited subrip file instance you can call ``save()`` on to
+    overwrite or export edited timings.
+
+
+  '''
+
+  f = pysrt.open(fname, encoding=detect_srt_encoding(fname))
+  f.clean_indexes()
+  return f

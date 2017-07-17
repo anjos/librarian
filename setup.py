@@ -36,11 +36,12 @@ setup(
 
     entry_points = {
       'console_scripts': [
-        'getsubs.py = librarian.scripts.getsubs:main',
         'retag_movie.py = librarian.scripts.retag_movie:main',
         'retag_tvshow.py = librarian.scripts.retag_tvshow:main',
         'tomp4.py = librarian.scripts.tomp4:main',
+        'getsubs.py = librarian.scripts.getsubs:main',
         'resync_subs.py = librarian.scripts.resync_subs:main',
+        'cleanup_subs.py = librarian.scripts.cleanup_subs:main',
       ],
     },
 
