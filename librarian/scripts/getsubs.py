@@ -4,7 +4,8 @@
 
 """Downloads the subtitles for a particular movie file
 
-Usage: %(prog)s [-v...] [--dry-run] [-l N] <file> <language> [<language>...]
+Usage: %(prog)s [-v...] [--dry-run] [-l N] [-p S...]
+                <file> <language> [<language>...]
        %(prog)s --help
        %(prog)s --version
 
@@ -18,24 +19,26 @@ Arguments:
 
 
 Options:
-  -h, --help       Shows this help message and exits
-  -V, --version    Prints the version and exits
-  -v, --verbose    Increases the output verbosity level. May be used multiple
-                   times
-  -d, --dry-run    Hits subtitle providers and shows list of subtitles that
-                   will be downloaded
-  -l N, --limit=N  If set, limit the number of displayed subtitles to the top
-                   N. A value of 0 removes any limitation and makes the program
-                   print all subtitles found [default: 5]
+  -h, --help          Shows this help message and exits
+  -V, --version       Prints the version and exits
+  -v, --verbose       Increases the output verbosity level. May be used
+                      multiple times
+  -d, --dry-run       Hits subtitle providers and shows list of subtitles that
+                      will be downloaded
+  -l N, --limit=N     If set, limit the number of displayed subtitles to the
+                      top N. A value of 0 removes any limitation and makes the
+                      program print all subtitles found [default: 5]
+  -p S, --provider=S  A sublist of providers to use for searching and
+                      downloading subtitles from. It can be used multiple
+                      times. Acceptable provider names are (%(providers)s). If
+                      not set, use all available providers.
 
 
 Examples:
 
   1. Check potential subtitles in french for a movie:
 
-     $ %(prog)s -vv file.mp4 fre
-     # files saved, if we succeed, will use 2-character code:
-     # - file.fr.srt
+     $ %(prog)s -vv -d file.mp4 fre
 
   2. Download top-hits for subtitles in brazilian portuguese and german using a
      2(+2)-character language definition:
@@ -44,6 +47,11 @@ Examples:
      # files saved, if we succeed, will use 2-character code (+country)
      # - file.pt-BR.srt
      # - file.de.srt
+
+  3. Check potential subtitles in brazilian portugues for a movie, only checks
+     opensubtitles and podnapisi:
+
+     $ %(prog)s -vv -d file.mp4 pt-br -p opensubtitles -p podnapisi
 
 """
 
@@ -61,10 +69,13 @@ def main(user_input=None):
 
   import docopt
   import pkg_resources
+  import subliminal
+  providers = subliminal.provider_manager.names()
 
   completions = dict(
       prog=os.path.basename(sys.argv[0]),
       version=pkg_resources.require('librarian')[0].version,
+      providers=', '.join(providers),
       )
 
   args = docopt.docopt(
@@ -80,9 +91,18 @@ def main(user_input=None):
   # normalize languages
   args['<language>'] = [as_language(k) for k in args['<language>']]
 
+  # check providers
+  if not args['--provider']: args['--provider'] = None
+  else:
+    for p in args['--provider']:
+      if p not in providers:
+        raise RuntimeError('Provider `%s\' is not among `%s\'' % \
+            (p, completions['providers']))
+
   from .. import subtitles
   config = subtitles.setup_subliminal()
-  results = subtitles.search(args['<file>'], args['<language>'], config)
+  results = subtitles.search(args['<file>'], args['<language>'], config,
+    providers=args['--provider'])
 
   if bool(args['--dry-run']):
     print("Subtitles for `%s'" % args['<file>'])
@@ -90,4 +110,5 @@ def main(user_input=None):
     subtitles.print_results(results, args['<language>'], limit=limit)
 
   else:
-    subtitles.download(args['<file>'], results, args['<language>'], config)
+    subtitles.download(args['<file>'], results, args['<language>'], config,
+      providers=args['--provider'])
