@@ -736,6 +736,13 @@ def run(options, progress=0):
 
   '''
 
+  def _to_time(ss):
+    '''converts a string in the format hh:mm:ss.MM) to time in seconds'''
+    h, m, s = ss.split(b':')
+    h = int(h) * 60 # in minutes
+    m = (h + int(m)) * 60 # in seconds
+    return m + float(s)
+
   ffmpeg = os.path.join(os.path.dirname(sys.executable), 'ffmpeg')
 
   # checks ffmpeg is there...
@@ -744,6 +751,8 @@ def run(options, progress=0):
         'install it?' % ffmpeg)
 
   cmd = [ffmpeg] + options
+  for k, c in enumerate(cmd):
+    if ' ' in c: cmd[k] = "'%s'" % c
   logger.info('Executing `%s\'...' % ' '.join(cmd))
   child = pexpect.spawn(' '.join(cmd))
 
@@ -751,12 +760,13 @@ def run(options, progress=0):
   pattern_list = [pexpect.EOF, else_re]
 
   if progress > 0:
-    frame_re = re.compile(b'frame=\s*(?P<frame>\d+)\s+.*\s+speed=\s*(?P<speed>\d+(\.\d+)?)x\s*')
+    frame_re = re.compile(b'frame=\s*(?P<frame>\d+)\s+.*time=\s*(?P<time>[\d\.:]+).*\s+speed=\s*(?P<speed>\d+(\.\d+)?)x\s*')
     pattern_list.insert(1, frame_re)
 
   cpl = child.compile_pattern_list(pattern_list)
 
-  with tqdm.tqdm(total=progress, disable=not progress, unit='frames') as pbar:
+  unit = 'frames' if isinstance(progress, int) else 'secs'
+  with tqdm.tqdm(total=progress, disable=not progress, unit=unit) as pbar:
     previous_frame = 0
     while True:
       i = child.expect_list(cpl, timeout=None)
@@ -771,7 +781,12 @@ def run(options, progress=0):
       elif i == 1 and progress > 0: #frame_re
         m = child.match.groupdict()
         pbar.set_postfix(speed=m['speed'].decode()+'x')
-        pbar.update(int(m['frame'])-previous_frame)
-        previous_frame = int(m['frame'])
+        if isinstance(progress, int):
+          pbar.update(int(m['frame'])-previous_frame)
+          previous_frame = int(m['frame'])
+        else:
+          secs = _to_time(m['time'])
+          pbar.update(secs-previous_frame)
+          previous_frame = secs
       elif i == 2 or (i == 1 and progress <= 0): #else_re
         logger.debug("ffmpeg: %s", child.match.string)

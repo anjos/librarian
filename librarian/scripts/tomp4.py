@@ -110,7 +110,6 @@ def main(user_input=None):
   if not bool(args['--dry-run']):
     streams = list(probe.iter('stream'))
     video = convert._get_default_stream(streams, 'video')
-    frames = int(video.attrib['nb_frames'])
 
     # handle backup
     if os.path.exists(args['<outfile>']):
@@ -119,6 +118,11 @@ def main(user_input=None):
       if os.path.exists(backup): os.unlink(backup)
       os.rename(args['<outfile>'], backup)
 
+    if 'nb_frames' in video.attrib:
+      frames = int(video.attrib['nb_frames'])
+    else:
+      logger.info('Number of frames not available - using stream duration')
+      frames = float(probe.find('format').attrib['duration'])
     retcode = convert.run(options, frames)
     sys.exit(retcode)
 
