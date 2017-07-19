@@ -205,10 +205,8 @@ def _make_apple_plist(episode):
   return output.getvalue()
 
 
-def _get_image(episode):
-  '''Downloads an image associated to a TV show into a pre-opened file'''
-
-  from six.moves import urllib
+def _image_url(episode):
+  '''Returns the poster URL for this episode'''
 
   episode.season.show.load_banners()
 
@@ -217,14 +215,25 @@ def _get_image(episode):
       k.BannerType == 'season' and k.Season == episode.season.season_number]
 
   if not season_banners:
+    return None
+
+  return season_banners[0].banner_url
+
+
+def _get_image(episode):
+  '''Downloads an image associated to a TV show into a pre-opened file'''
+
+  from six.moves import urllib
+
+  url = _image_url(episode)
+
+  if url is None:
     logger.warn('Did not find season cover art for %s, Season %d',
         episode.season.show.SeriesName, episode.season.season_number)
     return None, None
 
-  selected = season_banners[0] # best rated
-  logger.debug('Trying to retrieve image at %s', selected.banner_url)
-  return urllib.request.urlopen(selected.banner_url).read(), \
-      selected.banner_url[-4:]
+  logger.debug('Trying to retrieve image at %s', url)
+  return urllib.request.urlopen(url).read(), url[-4:]
 
 
 def _us_certification(episode):
@@ -244,6 +253,44 @@ def _make_short_description(overview):
 
   # get the first few phrases so that the total size is still < 256
   return '.'.join(overview[:max_size].split('.')[:-1]) + '.'
+
+
+def pretty_print(filename, episode):
+  '''Prints how the episode file is going to be retagged
+
+
+  Parameters:
+
+    filename (str): The full path to the movie file to be re-tagged
+
+    episode (obj): An object returned by the TVDB API implementation containing
+      all fields required to retag the TV show episode
+
+  '''
+
+  from .tmdb import _hd_tag
+  hd_tag = _hd_tag(filename)
+
+  print("tvsh = %s" % episode.season.show.SeriesName)
+  print("\xa9nam = %s" % episode.EpisodeName)
+  print("tven = %s" % episode.EpisodeName)
+  print("desc = %s" % _make_short_description(episode.Overview))
+  print("ldes = %s" % episode.Overview)
+  print("tvnn = %s" % episode.season.show.Network)
+  print("\xa9day = %s" % episode.FirstAired.strftime('%Y-%m-%d'))
+  print("tvsn = %s" % episode.season.season_number)
+  print("disk = %s" % [(episode.season.season_number,
+    len(episode.season.show))])
+  print("\xa9alb = %s" % '%s, Season %d' % (episode.season.show.SeriesName,
+      episode.season.season_number))
+  print("tves = %s" % [episode.EpisodeNumber])
+  print("trkn = %s" % [(episode.EpisodeNumber, len(episode.season))])
+  print("stik = %s # TV show iTunes category" % 10)
+  print("hdvd = %s" % hd_tag)
+  print("\xa9gen = %s" % episode.season.show.Genre)
+  print("covr = %s" % _image_url(episode))
+  print("----:com.apple.iTunes:iTunEXTC = %s" % _us_certification(episode))
+  print("----:com.apple.iTunes:iTunMOVI = %s" % _make_apple_plist(episode))
 
 
 def retag(filename, episode):

@@ -212,12 +212,18 @@ def _make_apple_plist(movie):
   return output.getvalue()
 
 
+def _image_url(movie, width=500):
+  '''Returns the URL of a movie poster'''
+
+  return ('http://image.tmdb.org/t/p/w%d' + movie.poster_path) % width
+
+
 def _get_image(movie):
   '''Downloads an image associated to a movie into a pre-opened file'''
 
   from six.moves import urllib
 
-  url = 'http://image.tmdb.org/t/p/w500' + movie.poster_path
+  url = _image_url(movie)
   logger.debug('Trying to retrieve image at %s', url)
   return urllib.request.urlopen(url).read()
 
@@ -243,6 +249,35 @@ def _hd_tag(filename):
   if width >= 1900 or height >= 1060: return '2'
   elif width >= 1260 or height >= 700: return '1'
   return '0'
+
+
+def pretty_print(filename, movie):
+  '''Prints how the movie file is going to be retagged
+
+
+  Parameters:
+
+    filename (str): The full path to the movie file to be re-tagged
+
+    movie (obj): An object returned by the TMDB API implementation containing
+      all fields required to retag the movie
+
+  '''
+
+  hd_tag = _hd_tag(filename)
+
+  print("Filename = %s" % filename)
+  print("\xa9nam = %s" % movie.title)
+  print("desc = %s" % movie.tagline)
+  print("ldes = %s" % movie.overview)
+  print("\xa9day = %s" % movie.release_date)
+  print("stik = [9] # Movie iTunes category")
+  print("hdvd = %s # 0: low res; 1: 720p; 2: 1080p or superior" % hd_tag)
+  print("\xa9gen = %s" % ([k['name'] for k in movie.genres],))
+  print("covr = %s" % _image_url(movie) if hasattr(movie, 'poster_path') \
+      else None)
+  print("----:com.apple.iTunes:iTunEXTC = %s" % _us_certification(movie))
+  print("----:com.apple.iTunes:iTunMOVI = %s" % _make_apple_plist(movie))
 
 
 def retag(filename, movie):

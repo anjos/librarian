@@ -3,7 +3,7 @@
 
 """Re-tag an MP4 video with information from TMDB
 
-Usage: %(prog)s [-v...] [--name=<name>] [--apikey=<key>]
+Usage: %(prog)s [-v...] [--name=<name>] [--apikey=<key>] [--dry-run]
                 [--basename-only] [--season=<int>] [--episode=<int>] <file>
        %(prog)s --help
        %(prog)s --version
@@ -18,6 +18,10 @@ Options:
   -V, --version        Prints the version and exits
   -v, --verbose        Increases the output verbosity level. May be used
                        multiple times
+  -d, --dry-run        If set, doesn't actually retag, but just shows the
+                       episode information retrieved from the remote database.
+                       This is a good debugging resource and can help you
+                       understanding how the file is going to be re-tagged
   -n, --name=<name>    Specifies the TV show name to search for information
                        on TVDB. This is handy if it can't be guessed from the
                        current filename
@@ -103,12 +107,14 @@ def main(user_input=None):
   from ..tvdb import record_from_guess
   episode = record_from_guess(info)
 
-  # printout some information about the movie
-  logger.info('TV show name: %s', episode.season.show.SeriesName)
-  logger.info('Air date: %s', episode.FirstAired.strftime('%Y-%m-%d'))
-  logger.info('TVDB episode id: %d', episode.id)
-
-  from ..tvdb import retag
-  retag(args['<file>'], episode)
+  if args['--dry-run']:
+    from ..tvdb import pretty_print
+    pretty_print(args['<file>'], episode)
+  else:
+    logger.info('TV show name: %s', episode.season.show.SeriesName)
+    logger.info('Air date: %s', episode.FirstAired.strftime('%Y-%m-%d'))
+    logger.info('TVDB episode id: %d', episode.id)
+    from ..tvdb import retag
+    retag(args['<file>'], episode)
 
   sys.exit(0)

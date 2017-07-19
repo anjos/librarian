@@ -4,10 +4,12 @@
 '''Test units'''
 
 import os
+import sys
 import six
 import shutil
 import tempfile
 import datetime
+import contextlib
 import pkg_resources
 from xml.etree import ElementTree
 import nose.tools
@@ -20,6 +22,15 @@ from . import tmdb, tvdb, utils, convert, subtitles
 def setup_apikeys():
   tmdb.setup_apikey()
   tvdb.setup_apikey()
+
+
+@contextlib.contextmanager
+def diverge_stdout_to_null():
+  buf = sys.stdout
+  f = open(os.devnull, 'w')
+  sys.stdout = f
+  yield
+  sys.stdout = buf #re-stores stdout
 
 
 def test_guess_movie_onlyname():
@@ -177,6 +188,20 @@ def test_mp4_movie_tagging():
 
 
 @nose.tools.with_setup(setup_apikeys)
+def test_mp4_movie_pretty_printing():
+
+  movie = tmdb.record_from_query('Star Wars Episode II')
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'movie.mp4'))
+  with tempfile.NamedTemporaryFile() as tmp:
+    with open(filename, 'rb') as original: tmp.write(original.read())
+    tmp.flush()
+    tmp.seek(0)
+    with diverge_stdout_to_null():
+      tmdb.pretty_print(tmp.name, movie)
+
+
+@nose.tools.with_setup(setup_apikeys)
 def test_mp4_episode_tagging():
 
   episode = tvdb.record_from_query('Friends', 1, 1) #season 1, episode 1
@@ -222,6 +247,20 @@ def test_mp4_episode_tagging():
     nose.tools.eq_(len(covr), 1)
     covr = covr[0]
     assert len(covr) != 0
+
+
+@nose.tools.with_setup(setup_apikeys)
+def test_mp4_episode_pretty_printing():
+
+  episode = tvdb.record_from_query('Friends', 1, 1) #season 1, episode 1
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'movie.mp4'))
+  with tempfile.NamedTemporaryFile() as tmp:
+    with open(filename, 'rb') as original: tmp.write(original.read())
+    tmp.flush()
+    tmp.seek(0)
+    with diverge_stdout_to_null():
+      tvdb.pretty_print(tmp.name, episode)
 
 
 def test_ffprobe():

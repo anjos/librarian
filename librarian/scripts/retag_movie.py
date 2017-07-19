@@ -3,7 +3,7 @@
 
 """Re-tag an MP4 video with information from TMDB
 
-Usage: %(prog)s [-v...] [--query=<query>] [--apikey=<key>]
+Usage: %(prog)s [-v...] [--query=<query>] [--apikey=<key>] [--dry-run]
                 [--basename-only] <file>
        %(prog)s --help
        %(prog)s --version
@@ -18,6 +18,10 @@ Options:
   -V, --version        Prints the version and exits
   -v, --verbose        Increases the output verbosity level. May be used
                        multiple times
+  -d, --dry-run        If set, doesn't actually retag, but just shows the
+                       movie information retrieved from the remote database.
+                       This is a good debugging resource and can help you
+                       understanding how the file is going to be re-tagged
   -q, --query=<title>  Specifies the title (or query) to search for information
                        on TMDB. This is handy if the movie name can't be
                        guessed from the current filename
@@ -89,16 +93,19 @@ def main(user_input=None):
     movie = record_from_query(args['--query'])
 
   # printout some information about the movie
-  if movie is not None:
-    logger.info('Title: %s', movie.title)
-    logger.info('Release date: %s', movie.release_date)
-    logger.info('TMDB id: %d', movie.id)
-  else:
+  if movie is None:
     logger.error('No results found for `%s\'', args['--query'])
     logger.error('Not re-tagging file')
     sys.exit(1)
 
-  from ..tmdb import retag
-  retag(args['<file>'], movie)
+  if args['--dry-run']:
+    from ..tmdb import pretty_print
+    pretty_print(args['<file>'], movie)
+  else:
+    logger.info('Title: %s', movie.title)
+    logger.info('Release date: %s', movie.release_date)
+    logger.info('TMDB id: %d', movie.id)
+    from ..tmdb import retag
+    retag(args['<file>'], movie)
 
   sys.exit(0)
