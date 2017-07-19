@@ -486,6 +486,188 @@ def test_planning_mkv_2():
   nose.tools.eq_(opts['disposition'], 'none')
 
 
+def test_planning_mkv_3():
+
+  # organization of the test file (french original movie with default english
+  # subtitles):
+  # Stream[0] - video, h.264 codec, default
+  # Stream[1] - audio, dts codec, 6 channels, language = eng, default
+  # Stream[2] - audio, ac3 codec, 2 channels, language = eng
+  # Stream[3] - audio, ac3 codec, 2 channels, language = eng
+  # Stream[4] - subtitle, hdmv_pgs_subtitle codec, language = eng
+  # Stream[5] - subtitle, hdmv_pgs_subtitle codec, language = por
+  # Stream[6] - subtitle, hdmv_pgs_subtitle codec, language = dan
+  # Stream[7] - subtitle, hdmv_pgs_subtitle codec, language = fin
+  # Stream[8] - subtitle, hdmv_pgs_subtitle codec, language = fre
+  # Stream[9] - subtitle, hdmv_pgs_subtitle codec, language = ger
+  # Stream[10] - subtitle, hdmv_pgs_subtitle codec, language  = spa
+  # Stream[11] - subtitle, hdmv_pgs_subtitle codec, language  = dut
+  # Stream[12] - subtitle, hdmv_pgs_subtitle codec, language  = nor
+  # Stream[13] - subtitle, hdmv_pgs_subtitle codec, language  = swe
+  # Stream[14] - subtitle, hdmv_pgs_subtitle codec, language  = eng
+  # Stream[15] - subtitle, hdmv_pgs_subtitle codec, language  = dan
+  # Stream[16] - subtitle, hdmv_pgs_subtitle codec, language  = fin
+  # Stream[17] - subtitle, hdmv_pgs_subtitle codec, language  = fre
+  # Stream[18] - subtitle, hdmv_pgs_subtitle codec, language  = ger
+  # Stream[19] - subtitle, hdmv_pgs_subtitle codec, language  = dut
+  # Stream[20] - subtitle, hdmv_pgs_subtitle codec, language  = nor
+  # Stream[21] - subtitle, hdmv_pgs_subtitle codec, language  = swe
+  # Stream[22] - subtitle, hdmv_pgs_subtitle codec, language  = eng
+  # Stream[23] - subtitle, hdmv_pgs_subtitle codec, language  = dan
+  # Stream[24] - subtitle, hdmv_pgs_subtitle codec, language  = fin
+  # Stream[25] - subtitle, hdmv_pgs_subtitle codec, language  = fre
+  # Stream[26] - subtitle, hdmv_pgs_subtitle codec, language  = ger
+  # Stream[27] - subtitle, hdmv_pgs_subtitle codec, language  = dut
+  # Stream[28] - subtitle, hdmv_pgs_subtitle codec, language  = nor
+  # Stream[29] - subtitle, hdmv_pgs_subtitle codec, language  = swe
+
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'mkv_3', 'probe.xml'))
+
+  # given an input file in MKV format and external SRT files, plans for MP4
+  # transcoding
+  with open(filename, 'rt') as f:
+    probe = ElementTree.fromstring(f.read())
+
+  # adjust filename as we don't know where we're installed
+  moviefile = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'mkv_3', 'movie.mkv'))
+  probe.find('format').attrib['filename'] = moviefile
+
+  languages = [utils.as_language(k) for k in ['eng', 'por', 'fre']]
+  planning = convert.plan(probe, languages=languages, ios_audio=True,
+      preserve_audio_streams=False, ignore_subtitle_streams=True)
+  keeping = [(k,v) for k,v in planning.items() if v]
+  deleting = [(k,v) for k,v in planning.items() if not v]
+  sorted_planning = sorted(keeping, key=lambda k: k[1]['index'])
+
+  # we should be throwing away all subtitles plus the 3rd audio track (eng)
+  nose.tools.eq_(len(deleting), 27)
+
+  # this should be the video stream
+  video, opts = sorted_planning[0]
+  nose.tools.eq_(video.attrib['codec_type'], 'video')
+  nose.tools.eq_(opts['index'], 0)
+  nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'default')
+
+  # this should be the 6-channel audio stream, in DTS
+  audio, opts = sorted_planning[1]
+  nose.tools.eq_(audio.attrib['codec_type'], 'audio')
+  assert 'dts' in audio.attrib['codec_name']
+  nose.tools.eq_(audio.attrib['channels'], '6')
+  nose.tools.eq_(convert._get_stream_language(audio), languages[0])
+  nose.tools.eq_(opts['index'], 1)
+  nose.tools.eq_(opts['codec'], 'aac')
+  nose.tools.eq_(opts['disposition'], 'default')
+
+  # the 3rd stream should be iOS stream, which will be copied as well
+  audio, opts = sorted_planning[2]
+  nose.tools.eq_(audio.attrib['codec_type'], 'audio')
+  assert 'ac3' in audio.attrib['codec_name']
+  nose.tools.eq_(audio.attrib['index'], '2')
+  nose.tools.eq_(convert._get_stream_language(audio), languages[0])
+  nose.tools.eq_(opts['index'], 2)
+  nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'none')
+
+
+def test_planning_mkv_3b():
+
+  # organization of the test file (french original movie with default english
+  # subtitles):
+  # Stream[0] - video, h.264 codec, default
+  # Stream[1] - audio, dts codec, 6 channels, language = eng, default
+  # Stream[2] - audio, ac3 codec, 2 channels, language = eng
+  # Stream[3] - audio, ac3 codec, 2 channels, language = eng
+  # Stream[4] - subtitle, hdmv_pgs_subtitle codec, language = eng
+  # Stream[5] - subtitle, hdmv_pgs_subtitle codec, language = por
+  # Stream[6] - subtitle, hdmv_pgs_subtitle codec, language = dan
+  # Stream[7] - subtitle, hdmv_pgs_subtitle codec, language = fin
+  # Stream[8] - subtitle, hdmv_pgs_subtitle codec, language = fre
+  # Stream[9] - subtitle, hdmv_pgs_subtitle codec, language = ger
+  # Stream[10] - subtitle, hdmv_pgs_subtitle codec, language  = spa
+  # Stream[11] - subtitle, hdmv_pgs_subtitle codec, language  = dut
+  # Stream[12] - subtitle, hdmv_pgs_subtitle codec, language  = nor
+  # Stream[13] - subtitle, hdmv_pgs_subtitle codec, language  = swe
+  # Stream[14] - subtitle, hdmv_pgs_subtitle codec, language  = eng
+  # Stream[15] - subtitle, hdmv_pgs_subtitle codec, language  = dan
+  # Stream[16] - subtitle, hdmv_pgs_subtitle codec, language  = fin
+  # Stream[17] - subtitle, hdmv_pgs_subtitle codec, language  = fre
+  # Stream[18] - subtitle, hdmv_pgs_subtitle codec, language  = ger
+  # Stream[19] - subtitle, hdmv_pgs_subtitle codec, language  = dut
+  # Stream[20] - subtitle, hdmv_pgs_subtitle codec, language  = nor
+  # Stream[21] - subtitle, hdmv_pgs_subtitle codec, language  = swe
+  # Stream[22] - subtitle, hdmv_pgs_subtitle codec, language  = eng
+  # Stream[23] - subtitle, hdmv_pgs_subtitle codec, language  = dan
+  # Stream[24] - subtitle, hdmv_pgs_subtitle codec, language  = fin
+  # Stream[25] - subtitle, hdmv_pgs_subtitle codec, language  = fre
+  # Stream[26] - subtitle, hdmv_pgs_subtitle codec, language  = ger
+  # Stream[27] - subtitle, hdmv_pgs_subtitle codec, language  = dut
+  # Stream[28] - subtitle, hdmv_pgs_subtitle codec, language  = nor
+  # Stream[29] - subtitle, hdmv_pgs_subtitle codec, language  = swe
+
+  filename = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'mkv_3', 'probe.xml'))
+
+  # given an input file in MKV format and external SRT files, plans for MP4
+  # transcoding
+  with open(filename, 'rt') as f:
+    probe = ElementTree.fromstring(f.read())
+
+  # adjust filename as we don't know where we're installed
+  moviefile = pkg_resources.resource_filename(__name__,
+      os.path.join('data', 'mkv_3', 'movie.mkv'))
+  probe.find('format').attrib['filename'] = moviefile
+
+  languages = [utils.as_language(k) for k in ['eng', 'por', 'fre']]
+  planning = convert.plan(probe, languages=languages, ios_audio=True,
+      preserve_audio_streams=True, ignore_subtitle_streams=True)
+  keeping = [(k,v) for k,v in planning.items() if v]
+  deleting = [(k,v) for k,v in planning.items() if not v]
+  sorted_planning = sorted(keeping, key=lambda k: k[1]['index'])
+
+  # we should be throwing away all subtitles (only)
+  nose.tools.eq_(len(deleting), 26)
+
+  # this should be the video stream
+  video, opts = sorted_planning[0]
+  nose.tools.eq_(video.attrib['codec_type'], 'video')
+  nose.tools.eq_(opts['index'], 0)
+  nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'default')
+
+  # this should be the 6-channel audio stream, in DTS
+  audio, opts = sorted_planning[1]
+  nose.tools.eq_(audio.attrib['codec_type'], 'audio')
+  assert 'dts' in audio.attrib['codec_name']
+  nose.tools.eq_(audio.attrib['channels'], '6')
+  nose.tools.eq_(convert._get_stream_language(audio), languages[0])
+  nose.tools.eq_(opts['index'], 1)
+  nose.tools.eq_(opts['codec'], 'aac')
+  nose.tools.eq_(opts['disposition'], 'default')
+
+  # the 3rd stream should be iOS stream, which will be copied as well
+  audio, opts = sorted_planning[2]
+  nose.tools.eq_(audio.attrib['codec_type'], 'audio')
+  assert 'ac3' in audio.attrib['codec_name']
+  nose.tools.eq_(audio.attrib['index'], '2')
+  nose.tools.eq_(convert._get_stream_language(audio), languages[0])
+  nose.tools.eq_(opts['index'], 2)
+  nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'none')
+
+  # the 4th stream should be an auxiliary english audio stream
+  audio, opts = sorted_planning[3]
+  nose.tools.eq_(audio.attrib['codec_type'], 'audio')
+  assert 'ac3' in audio.attrib['codec_name']
+  nose.tools.eq_(audio.attrib['index'], '3')
+  nose.tools.eq_(convert._get_stream_language(audio), languages[0])
+  nose.tools.eq_(opts['index'], 3)
+  nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['disposition'], 'none')
+
+
 def test_options_mkv_1():
 
   # organization of the test file (french original movie with default english

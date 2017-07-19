@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ffprobe>
+    <streams>
+        <stream index="0" codec_name="h264" codec_long_name="H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10" profile="High" codec_type="video" codec_time_base="1001/48000" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" width="1920" height="1080" coded_width="1920" coded_height="1080" has_b_frames="1" sample_aspect_ratio="1:1" display_aspect_ratio="16:9" pix_fmt="yuv420p" level="41" chroma_location="left" field_order="progressive" refs="1" is_avc="true" nal_length_size="4" r_frame_rate="24000/1001" avg_frame_rate="24000/1001" time_base="1/1000" start_pts="0" start_time="0.000000" bits_per_raw_sample="8">
+            <disposition default="1" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="eng"/>
+        </stream>
+        <stream index="1" codec_name="dts" codec_long_name="DCA (DTS Coherent Acoustics)" profile="DTS-HD MA" codec_type="audio" codec_time_base="1/48000" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" sample_fmt="s32p" sample_rate="48000" channels="6" channel_layout="5.1(side)" bits_per_sample="0" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" bits_per_raw_sample="24">
+            <disposition default="1" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="eng"/>
+        </stream>
+        <stream index="2" codec_name="ac3" codec_long_name="ATSC A/52A (AC-3)" codec_type="audio" codec_time_base="1/48000" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" sample_fmt="fltp" sample_rate="48000" channels="2" channel_layout="stereo" bits_per_sample="0" dmix_mode="-1" ltrt_cmixlev="-1.000000" ltrt_surmixlev="-1.000000" loro_cmixlev="-1.000000" loro_surmixlev="-1.000000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" bit_rate="224000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="eng"/>
+        </stream>
+        <stream index="3" codec_name="ac3" codec_long_name="ATSC A/52A (AC-3)" codec_type="audio" codec_time_base="1/48000" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" sample_fmt="fltp" sample_rate="48000" channels="2" channel_layout="stereo" bits_per_sample="0" dmix_mode="-1" ltrt_cmixlev="-1.000000" ltrt_surmixlev="-1.000000" loro_cmixlev="-1.000000" loro_surmixlev="-1.000000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" bit_rate="224000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="eng"/>
+        </stream>
+        <stream index="4" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="eng"/>
+        </stream>
+        <stream index="5" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="por"/>
+        </stream>
+        <stream index="6" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="dan"/>
+        </stream>
+        <stream index="7" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="fin"/>
+        </stream>
+        <stream index="8" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="fre"/>
+        </stream>
+        <stream index="9" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="ger"/>
+        </stream>
+        <stream index="10" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="spa"/>
+        </stream>
+        <stream index="11" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="dut"/>
+        </stream>
+        <stream index="12" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="nor"/>
+        </stream>
+        <stream index="13" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="swe"/>
+        </stream>
+        <stream index="14" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="eng"/>
+        </stream>
+        <stream index="15" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="dan"/>
+        </stream>
+        <stream index="16" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="fin"/>
+        </stream>
+        <stream index="17" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="fre"/>
+        </stream>
+        <stream index="18" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="ger"/>
+        </stream>
+        <stream index="19" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="dut"/>
+        </stream>
+        <stream index="20" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="nor"/>
+        </stream>
+        <stream index="21" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="swe"/>
+        </stream>
+        <stream index="22" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="eng"/>
+        </stream>
+        <stream index="23" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="dan"/>
+        </stream>
+        <stream index="24" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="fin"/>
+        </stream>
+        <stream index="25" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="fre"/>
+        </stream>
+        <stream index="26" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="ger"/>
+        </stream>
+        <stream index="27" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="dut"/>
+        </stream>
+        <stream index="28" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="nor"/>
+        </stream>
+        <stream index="29" codec_name="hdmv_pgs_subtitle" codec_long_name="HDMV Presentation Graphic Stream subtitles" codec_type="subtitle" codec_time_base="0/1" codec_tag_string="[0][0][0][0]" codec_tag="0x0000" r_frame_rate="0/0" avg_frame_rate="0/0" time_base="1/1000" start_pts="0" start_time="0.000000" duration_ts="6950048" duration="6950.048000">
+            <disposition default="0" dub="0" original="0" comment="0" lyrics="0" karaoke="0" forced="0" hearing_impaired="0" visual_impaired="0" clean_effects="0" attached_pic="0" timed_thumbnails="0"/>
+            <tag key="language" value="swe"/>
+        </stream>
+    </streams>
+
+    <format filename="/Users/andre/Desktop/Temporary/Movies/Alien/Alien.1979.Directors.Cut.Bluray.1080p.DTS-HD.x264-Grym.mkv" nb_streams="30" nb_programs="0" format_name="matroska,webm" format_long_name="Matroska / WebM" start_time="0.000000" duration="6950.048000" size="16173952173" bit_rate="18617370" probe_score="100">
+        <tag key="encoder" value="libebml v1.3.0 + libmatroska v1.4.0"/>
+        <tag key="creation_time" value="2013-06-24T01:21:17.000000Z"/>
+    </format>
+</ffprobe>

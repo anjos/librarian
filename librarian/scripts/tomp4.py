@@ -4,8 +4,9 @@
 
 """Re-encodes a video file respecting criteria defined by you using ffmpeg
 
-Usage: %(prog)s [-v...] [-language=<lang>...] [-show=<lang>] [--ios-audio]
-                [--threads=<N>] [--dry-run] <infile> <outfile>
+Usage: %(prog)s [-v...] [--language=<lang>...] [--show=<lang>] [--ios-audio]
+                [--threads=<N>] [--dry-run] [--ignore-sstreams]
+                [--preserve-astreams] <infile> <outfile>
        %(prog)s --help
        %(prog)s --version
 
@@ -16,35 +17,49 @@ Arguments:
 
 
 Options:
-  -h, --help            Shows this help message and exits
-  -V, --version         Prints the version and exits
-  -v, --verbose         Increases the output verbosity level. May be used
-                        multiple times
-  -d, --dry-run         If set, doesn't actually run ffmpeg, but just shows the
-                        stream planning for the output video. This is a good
-                        debugging resource and can help you understand how the
-                        program operates
-  -l, --language=<lang> Defines the languages of your preference. May be used
-                        multiple times. You may use the ISO-639 3-letter
-                        standard, e.g. "deu" or "ger" for german, a 2-letter
-                        standard, e.g. "es" for spain, or a 2-letter + country
-                        code, e.g. "pt-BR" for brazilian portuguese. Audio and
-                        subtitle streams will be organized using this order.
-                        The language in front of your list defines the default
-                        audio stream. Subtitle streams won't be shown by
-                        default, unless you specify it with "--show=<lang>".
-  -s, --show=<lang>     If set, then subtitles for the provided language will
-                        be shown by default. The encoding should be the same as
-                        for "--language=<lang>".
-  -i, --ios-audio       If set and if the first programmed audio stream is not
-                        stereo (i.e., has 2-channels), then a second audio
-                        stream with 2-channels will be created in AAC format.
-                        This stream is selected prioritarily by iOS devices. It
-                        is not audible by default otherwise.
-  -t, --threads=N       Specify the number of threads ffmpeg is allowed to use
-                        from your machine. If you set this number to zero, then
-                        ffmpeg will decide on the "optimal" number of threads
-                        to use for transcoding. [default: 0]
+  -h, --help               Shows this help message and exits
+  -V, --version            Prints the version and exits
+  -v, --verbose            Increases the output verbosity level. May be used
+                           multiple times
+  -d, --dry-run            If set, doesn't actually run ffmpeg, but just shows
+                           the stream planning for the output video. This is a
+                           good debugging resource and can help you understand
+                           how the program operates
+  -l, --language=<lang>    Defines the languages of your preference. May be
+                           used multiple times. You may use the ISO-639
+                           3-letter standard, e.g. "deu" or "ger" for german, a
+                           2-letter standard, e.g. "es" for spain, or a
+                           2-letter + country code, e.g. "pt-BR" for brazilian
+                           portuguese.  Audio and subtitle streams will be
+                           organized using this order.  The language in front
+                           of your list defines the default audio stream.
+                           Subtitle streams won't be shown by default, unless
+                           you specify it with "--show=<lang>"
+  -g, --ignore-sstreams    If set, ignore all internal subtitle streams. It may
+                           be necessary if internal subtitle streams are not
+                           character-based and cannot be easily converted to
+                           "mov_text" or in case you wish to re-encode external
+                           subtitles once more
+  -a, --preserve-astreams  If set, preserve all audio streams available in the
+                           selected languages on the output file. If this is
+                           not set and we have found audio streams matching
+                           each of the selected languages, then, exceeding
+                           audio streams will be dropped (e.g. a director's
+                           commentary stream). If you want to preserve those,
+                           set this flag
+  -s, --show=<lang>        If set, then subtitles for the provided language
+                           will be shown by default. The encoding should be the
+                           same as for "--language=<lang>"
+  -i, --ios-audio          If set and if the first programmed audio stream is
+                           not stereo (i.e., has 2-channels), then a second
+                           audio stream with 2-channels will be created in AAC
+                           format. This stream is selected prioritarily by iOS
+                           devices. It is not audible by default otherwise.
+  -t, --threads=N          Specify the number of threads ffmpeg is allowed to
+                           use from your machine. If you set this number to
+                           zero, then ffmpeg will decide on the "optimal"
+                           number of threads to use for transcoding.
+                           [default: 0]
 
 
 Examples:
@@ -102,7 +117,9 @@ def main(user_input=None):
   probe = convert.probe(args['<infile>'])
   planning = convert.plan(probe, languages=args['--language'],
       default_subtitle_language=args['--show'],
-      ios_audio=bool(args['--ios-audio']))
+      ios_audio=bool(args['--ios-audio']),
+      preserve_audio_streams=bool(args['--preserve-astreams']),
+      ignore_subtitle_streams=bool(args['--ignore-sstreams']))
   options = convert.options(args['<infile>'], args['<outfile>'],
       planning, int(args['--threads']))
 

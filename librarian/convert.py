@@ -152,7 +152,7 @@ def _get_default_stream(streams, ctype):
   return r[0]
 
 
-def _copy_or_transcode(stream, name, codec, settings):
+def _copy_or_transcode(stream, names, codec, settings):
   '''Decides if the stream will be copied or transcoded based on its settings
 
   This function will check if the stream will be copied or transcoded based on
@@ -167,10 +167,11 @@ def _copy_or_transcode(stream, name, codec, settings):
     stream (xml.etree.Element): An XML element corresponding to the stream to
       check
 
-    name (str): The bit of string to check on the currently used codec name.
-      For example, this may be ``aac`` or ``264``. It does not need to be the
-      full codec name as that is normally changing depending on how you
-      compiled ffmpeg.
+    names (list of str): The bit of string to check on the currently used codec
+      name.  For example, this may be ``aac`` or ``264``. It does not need to
+      be the full codec name as that is normally changing depending on how you
+      compiled ffmpeg. You may pass multiple strings to check for. If you pass
+      a single string, still wrap it in a list.
 
     codec (str): This is a keyword that will be used later and defines the
       codec we actually want for this stream
@@ -180,7 +181,7 @@ def _copy_or_transcode(stream, name, codec, settings):
 
   '''
 
-  if name not in stream.attrib['codec_name']:
+  if not any(s in stream.attrib['codec_name'] for s in names):
     logger.info('%s stream (index=%s, language=%s) is encoded with ' \
         'codec=%s - transcoding stream to %s',
         stream.attrib['codec_type'].capitalize(),
@@ -196,7 +197,7 @@ def _copy_or_transcode(stream, name, codec, settings):
         stream.attrib['codec_type'].capitalize(),
         stream.attrib['index'],
         _get_stream_language(stream),
-        codec)
+        stream.attrib['codec_name'])
     settings['codec'] = 'copy'
 
 
@@ -217,7 +218,7 @@ def _plan_video(streams, mapping):
   mapping[video]['index'] = 0 #video is always first
   mapping[video]['disposition'] = 'default' #video should be shown by default
 
-  _copy_or_transcode(video, '264', 'h264', mapping[video])
+  _copy_or_transcode(video, ['264'], 'h264', mapping[video])
 
 
 def _get_stream_language(stream):
@@ -248,7 +249,7 @@ def _get_default_audio_stream(streams, languages):
   return _get_default_stream(streams, 'audio')
 
 
-def _plan_audio(streams, languages, ios_audio, mapping):
+def _plan_audio(streams, languages, ios_audio, preserve_all, mapping):
   '''Creates a transcoding plan for audio streams
 
   Parameters:
@@ -265,9 +266,14 @@ def _plan_audio(streams, languages, ios_audio, mapping):
       language and will make up audio[0] (and audio[1] if ``ios_audio`` is set
       to ``True``). The following audio tracks will be organized as defined.
 
-    ios_audio (:py:class:`bool`, optional): If set to ``True``, then audio[1]
-      will contain a stereo AC3 encoded track which is suitable to play on iOS
-      devices
+    ios_audio (bool): If set to ``True``, then audio[1] will contain a stereo
+      AAC (or AC3) encoded track which is suitable to play on iOS devices
+
+    preserve_all (bool): If set, preserve all audio streams available in the
+      selected languages on the output file. If this is not set and we have
+      found audio streams matching each of the selected languages, then,
+      exceeding audio streams will be dropped (e.g. a director's commentary
+      stream). If you want to preserve those, set this flag
 
     mapping (dict): Where to place the planning
 
@@ -290,7 +296,7 @@ def _plan_audio(streams, languages, ios_audio, mapping):
   mapping[default_audio]['disposition'] = 'default' #audible by default
 
   # if the default audio is already in AAC, just copy it
-  _copy_or_transcode(default_audio, 'aac', 'aac', mapping[default_audio])
+  _copy_or_transcode(default_audio, ['aac'], 'aac', mapping[default_audio])
 
   secondary_audio = [s for s in audio_streams if s != default_audio]
 
@@ -302,12 +308,13 @@ def _plan_audio(streams, languages, ios_audio, mapping):
     # stream, but with only 2 audio channels (stereo), that is still encoded as
     # AAC or AC3. copy that prioritarily if available
     for s in secondary_audio:
+      if ios_stream is not None: break
       if default_lang == _get_stream_language(s) and \
           int(s.attrib['channels']) == 2:
         ios_stream = s #found it
         mapping[s]['index'] = 2
         mapping[s]['disposition'] = 'none' # not audible by default
-        _copy_or_transcode(s, 'aac', 'aac', mapping[s])
+        _copy_or_transcode(s, ['ac3', 'aac'], 'aac', mapping[s])
 
     # if, at this point, ios_stream was not found, transcode from the default
     # audio stream
@@ -324,16 +331,19 @@ def _plan_audio(streams, languages, ios_audio, mapping):
   else:
     logger.info('Skipping creation of optimized iOS audio track')
 
-  # eventually, exclude used iOS audio stream
+  # Secondary audio streams
+
+  # Exclude used iOS audio stream
   secondary_audio = [s for s in secondary_audio if s != ios_stream]
 
-  # remove anything that is in the main language
-  secondary_audio = [s for s in secondary_audio \
-      if _get_stream_language(s) not in (UNDETERMINED_LANGUAGE, default_lang)]
+  if not preserve_all:
+    # remove anything that is in the main language
+    secondary_audio = [s for s in secondary_audio \
+        if _get_stream_language(s) not in (UNDETERMINED_LANGUAGE, default_lang)]
 
-  # re-organize the input languages to that the default language, which already
-  # has 1 or 2 streams guaranteed, does not reappear
-  languages = [k for k in languages if k != default_lang]
+    # re-organize the input languages to that the default language, which
+    # already has 1 or 2 streams guaranteed, does not reappear
+    languages = [k for k in languages if k != default_lang]
 
   # we now want to re-arrange the other streams in such a way as to respect the
   # language selection from the user. we also transcode those streams to aac if
@@ -349,7 +359,7 @@ def _plan_audio(streams, languages, ios_audio, mapping):
         mapping[s]['index'] = curr_index
         mapping[s]['disposition'] = 'none' # not audible by default
         curr_index += 1
-        _copy_or_transcode(s, 'aac', 'aac', mapping[s])
+        _copy_or_transcode(s, ['ac3', 'aac'], 'aac', mapping[s])
 
     # remove any used stream so we don't iterate over it again
     secondary_audio = [s for s in secondary_audio if s != used_stream]
@@ -375,7 +385,8 @@ def detect_srt_encoding(fname):
   return None
 
 
-def _plan_subtitles(streams, filename, languages, mapping, show=None):
+def _plan_subtitles(streams, filename, languages, mapping, show,
+    ignore_internal):
   '''Creates a transcoding plan for subtitle streams
 
 
@@ -396,13 +407,18 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
 
     mapping (dict): Where to place the planning
 
-    show (:py:class:`babelfish.Language`, optional): The language of subtitles
-      to display by default. If not set, then don't display any subtitle by
-      default.
+    show (babelfish.Language): The language of subtitles to display by default.
+
+    ignore_internal (bool): If set to ``True``, then all internal subtitle
+      tracks will **not** be considered when looking for language-specific
+      subtitles, only external ones, if available.
 
   '''
 
-  subtitle_streams = _get_streams(streams, 'subtitle')
+  if not ignore_internal:
+    subtitle_streams = _get_streams(streams, 'subtitle')
+  else:
+    subtitle_streams = []
 
   # finally, we handle the subtitles, keep language priority and suppress any
   # other languages. there are 2 options here: (1) the stream is encoded within
@@ -429,7 +445,7 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
         mapping[s]['disposition'] = 'default' if show == k else 'none'
         mapping[s]['language'] = k
         curr_index += 1
-        _copy_or_transcode(s, 'mov_text', 'mov_text', mapping[s])
+        _copy_or_transcode(s, ['mov_text'], 'mov_text', mapping[s])
         used_stream = s
         break #go to the next language, don't pay attention to SRT files
 
@@ -459,7 +475,8 @@ def _plan_subtitles(streams, filename, languages, mapping, show=None):
         if _get_stream_language(s) != k]
 
 
-def plan(probe, languages, default_subtitle_language=None, ios_audio=True):
+def plan(probe, languages, default_subtitle_language=None, ios_audio=True,
+    preserve_audio_streams=False, ignore_subtitle_streams=False):
   '''Plans the pipeline to convert the input video into a standardised mp4
 
   This function can plan the conversion of a movie or TV show episode in a
@@ -520,6 +537,17 @@ def plan(probe, languages, default_subtitle_language=None, ios_audio=True):
       will contain a stereo AC3 encoded track which is suitable to play on iOS
       devices
 
+    preserve_audio_streams (bool): If set, preserve all audio streams available
+      in the selected languages on the output file. If this is not set and we
+      have found audio streams matching each of the selected languages, then,
+      exceeding audio streams will be dropped (e.g. a director's commentary
+      stream). If you want to preserve those, set this flag
+
+    ignore_subtitle_streams (:py:class:`bool`, optional): If set to
+      ``True``, then all internal subtitle tracks will **not** be considered
+      when looking for language-specific subtitles, only external ones, if
+      available.
+
 
   Returns:
 
@@ -537,11 +565,11 @@ def plan(probe, languages, default_subtitle_language=None, ios_audio=True):
   for s in streams: mapping[s] = {}
 
   _plan_video(streams, mapping)
-  _plan_audio(streams, languages, ios_audio, mapping)
+  _plan_audio(streams, languages, ios_audio, preserve_audio_streams, mapping)
 
   filename = probe.find('format').attrib['filename']
   _plan_subtitles(streams, filename, languages, mapping,
-      show=default_subtitle_language)
+      default_subtitle_language, ignore_subtitle_streams)
 
   # return information only for streams that will be used
   return mapping
