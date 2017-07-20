@@ -1,5 +1,5 @@
 {% set name="librarian" %}
-{% set version="0.0.1a0" %}
+{% set version="1.0.0" %}
 
 package:
   name: {{ name }}

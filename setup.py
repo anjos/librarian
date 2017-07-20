@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 setup(
 
     name='librarian',
-    version='0.0.1',
+    version='1.0.0',
     description="Utilities for organizing Movie/TV show libraries",
     url='https://github.com/anjos/librarian',
     license="GPLv3",
