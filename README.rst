@@ -5,30 +5,18 @@
  The Librarian - Utilities for Organizing MP4 Libraries
 --------------------------------------------------------
 
-A bunch of utilities to organize libraries of movies and TV shows. Some bits,
-pieces and ideas were taken from `Sickbeard's mp4 automator`_.
+A bunch of utilities to organize libraries of movies and TV shows. It provides
+a subtitle downloader, an any-format to MP4 converter based on ffmpeg_ and a
+tagger to add movie/TV show episode information to the MP4 metadata.
 
 
 Install
 =======
 
-I advise you to install a Conda_-based environment for deployment with this
-command line::
+Use the Conda_ package to install the librarian and all of its dependencies::
 
-  $ conda env create --force -f dev.yml
-  $ source activate librarian-dev
-  $ buildout
-
-After running ``buildout``, you should have all executables inside the ``bin/``
-directory.
-
-.. note::
-
-   We distribute build instructions to compile ``libfdk-aac`` and ffmpeg
-   (namely ``ffmpeg-libdk-aac``) with support for it. ``fdk-acc`` is known to
-   produce better results for AAC VBR encoding. After "conda" building these
-   packages locally, use ``fdk-aac.yml`` to create the ``librarian-dev``
-   environment instead of ``dev.yml`` as per instructions above.
+  $ conda create --override-channels -c anjos -c defaults -n librarian python=3.5 librarian
+  $ source activate librarian
 
 
 API Keys and Passwords
@@ -74,7 +62,7 @@ Downloading Subtitles
 
 This is done through subliminal_ with::
 
-  $ ./bin/getsubs --help
+  $ ./bin/getsubs.py --help
 
 
 Converting to MP4
@@ -93,7 +81,7 @@ Re-tagging a Movie
 Re-tagging will fill in MP4 metadata such as title, year, cast, crew, synopsis,
 cover and more. To re-tag an MP4 file with a movie, do the following::
 
-  $ ./bin/retag_movie.py <file>.mp4
+  $ ./bin/retag_movie.py -vv <file>.mp4
 
 This command will attempt to guess the movie title (and date) from the input
 file name using guessit_. The program will then probe the TMDB database using
@@ -102,7 +90,7 @@ tmdbsimple_.
 You can specify a friendly search string (e.g. movie title and year) to
 optimize the search and avoid guessing::
 
-  $ ./bin/retag_movie.py <file>.mp4 --query="<query-matching-movie>"
+  $ ./bin/retag_movie.py -vv <file>.mp4 --query="<query-matching-movie>"
 
 Once information is retrieved from TMDB, it is recorded on the MP4 file using
 mutagen_.
@@ -113,7 +101,7 @@ Re-tagging a TV show Episode
 
 To re-tag an MP4 file with a movie, do the following::
 
-  $ ./bin/retag_tvshow.py <file>.mp4
+  $ ./bin/retag_tvshow.py -vv <file>.mp4
 
 This command will attempt to guess the TV show title season and episode from
 the input file name using `guessit`_. The program will then probe the TVDB
@@ -122,7 +110,7 @@ database using `pytvdbapi`_.
 You can specify a friendly name string (e.g. series name, season and episode
 number ) to optimize the search and avoid guessing::
 
-  $ ./bin/retag.py <file>.mp4 --name="TV Show Name" --season=1 --episode=1
+  $ ./bin/retag.py -vv <file>.mp4 --name="TV Show Name" --season=1 --episode=1
 
 Once information is retrieved from TVDB, it is recorded on the MP4 file using
 mutagen_, similar to movies.
@@ -144,6 +132,14 @@ To build the project and make it ready to run, do::
   $ buildout
 
 This command should leave you with a functional development environment.
+
+.. note::
+
+   We distribute build instructions to compile ``libfdk-aac`` and ffmpeg
+   (namely ``ffmpeg-libdk-aac``) with support for it. ``fdk-acc`` is known to
+   produce better results for AAC VBR encoding. After "conda" building these
+   packages locally, use ``fdk-aac.yml`` to create the ``librarian-dev``
+   environment instead of ``dev.yml`` as per instructions above.
 
 
 Testing
@@ -198,5 +194,4 @@ everytime), do::
 .. _mutagen: https://mutagen.readthedocs.io/en/latest/
 .. _qtfaststart: https://github.com/danielgtaylor/qtfaststart
 .. _pytvdbapi: https://github.com/fuzzycode/pytvdbapi
-.. _sickbeard's mp4 automator: https://github.com/mdhiggins/sickbeard_mp4_automator
 .. _ffmpeg: https://ffmpeg.org
