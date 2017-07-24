@@ -294,6 +294,11 @@ def _plan_audio(streams, languages, ios_audio, preserve_all, mapping):
   default_channels = int(default_audio.attrib['channels'])
   mapping[default_audio]['index'] = 1
   mapping[default_audio]['disposition'] = 'default' #audible by default
+  if default_lang == UNDETERMINED_LANGUAGE:
+    logger.warn('Default audio stream language is NOT set, forcing it to ' \
+        ' `%s\'', languages[0].alpha3b)
+    default_lang = languages[0]
+  mapping[default_audio]['language'] = default_lang
 
   # if the default audio is already in AAC, just copy it
   _copy_or_transcode(default_audio, ['aac'], 'aac', mapping[default_audio])
@@ -327,6 +332,7 @@ def _plan_audio(streams, languages, ios_audio, preserve_all, mapping):
       mapping['__ios__']['index'] = 2
       mapping['__ios__']['codec'] = 'aac'
       mapping['__ios__']['disposition'] = 'none'
+      mapping['__ios__']['language'] = default_lang
 
   else:
     logger.info('Skipping creation of optimized iOS audio track')
@@ -689,8 +695,13 @@ def options(infile, outfile, planning, threads=0):
                 '0.707*BL|FR<1.0*FR+0.707*FC+0.707*BR[iOS]' % \
                 v['original'].attrib['index'],
                 '-metadata:s:%d' % v['index'],
-                'language=%s' % _get_stream_language(v['original']).alpha3b,
             ]
+        if 'language' in v:
+          codopt += ['language=%s' % v['language'].alpha3b]
+        else:
+          codopt += [
+              'language=%s' % _get_stream_language(v['original']).alpha3b
+              ]
 
       else: #subtitle SRT to bring in
         if v['encoding'] is not None:
@@ -728,8 +739,11 @@ def options(infile, outfile, planning, threads=0):
       if kind in ('audio', 'subtitle'): #add language
         codopt += [
             '-metadata:s:%d' % v['index'],
-            'language=%s' % _get_stream_language(k).alpha3b,
             ]
+        if 'language' in v:
+          codopt += ['language=%s' % v['language'].alpha3b]
+        else:
+          codopt += ['language=%s' % _get_stream_language(k).alpha3b]
 
   # replaces qtfaststart need
   codopt += ['-movflags', '+faststart']
