@@ -607,7 +607,7 @@ def print_plan(plan):
         print('  %s stream [%s] lang=%s codec=%s -> [%d] codec=%s (iOS)' % \
             (v['original'].attrib['codec_type'],
               v['original'].attrib['index'],
-              _get_stream_language(v['original'].alpha3b),
+              _get_stream_language(v['original']).alpha3b,
               v['original'].attrib['codec_name'],
               v['index'], v['codec']))
       else: #it is a subtitle in srt format
