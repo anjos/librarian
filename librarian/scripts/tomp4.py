@@ -4,9 +4,9 @@
 
 """Re-encodes a video file respecting criteria defined by you using ffmpeg
 
-Usage: %(prog)s [-v...] [--language=<lang>...] [--show=<lang>] [--ios-audio]
-                [--threads=<N>] [--dry-run] [--ignore-sstreams]
-                [--preserve-astreams] <infile> <outfile>
+Usage: %(prog)s [-v...] [--show=<lang>] [--ios-audio] [--threads=<N>]
+                [--dry-run] [--ignore-sstreams] [--preserve-astreams]
+                <infile> <outfile> <lang> [<lang>...]
        %(prog)s --help
        %(prog)s --version
 
@@ -14,6 +14,14 @@ Usage: %(prog)s [-v...] [--language=<lang>...] [--show=<lang>] [--ios-audio]
 Arguments:
   <infile>    The input filename (any ffmpeg supported extension)
   <outfile>   The output filename (should end in ``.mp4``)
+  <lang>      Defines the languages of your preference. May be used multiple
+              times. You may use the ISO-639 3-letter standard, e.g. "deu" or
+              "ger" for german, a 2-letter standard, e.g. "es" for spain, or a
+              2-letter + country code, e.g. "pt-BR" for brazilian portuguese.
+              Audio and subtitle streams will be organized using this order.
+              The first language of your list defines the default audio stream.
+              Subtitle streams won't be shown by default, unless you specify it
+              with "--show=<lang>"
 
 
 Options:
@@ -25,16 +33,6 @@ Options:
                            the stream planning for the output video. This is a
                            good debugging resource and can help you understand
                            how the program operates
-  -l, --language=<lang>    Defines the languages of your preference. May be
-                           used multiple times. You may use the ISO-639
-                           3-letter standard, e.g. "deu" or "ger" for german, a
-                           2-letter standard, e.g. "es" for spain, or a
-                           2-letter + country code, e.g. "pt-BR" for brazilian
-                           portuguese.  Audio and subtitle streams will be
-                           organized using this order.  The language in front
-                           of your list defines the default audio stream.
-                           Subtitle streams won't be shown by default, unless
-                           you specify it with "--show=<lang>"
   -g, --ignore-sstreams    If set, ignore all internal subtitle streams. It may
                            be necessary if internal subtitle streams are not
                            character-based and cannot be easily converted to
@@ -49,7 +47,7 @@ Options:
                            set this flag
   -s, --show=<lang>        If set, then subtitles for the provided language
                            will be shown by default. The encoding should be the
-                           same as for "--language=<lang>"
+                           same as for "<lang>"
   -i, --ios-audio          If set and if the first programmed audio stream is
                            not stereo (i.e., has 2-channels), then a second
                            audio stream with 2-channels will be created in AAC
@@ -107,7 +105,7 @@ def main(user_input=None):
   logger = setup_logger('librarian', args['--verbose'])
 
   # normalize languages
-  args['--language'] = [as_language(k) for k in args['--language']]
+  args['<lang>'] = [as_language(k) for k in args['<lang>']]
   args['--show'] = args['--show'] if args['--show'] is None else \
       as_language(args['--show'])
 
@@ -115,7 +113,7 @@ def main(user_input=None):
 
   # planning
   probe = convert.probe(args['<infile>'])
-  planning = convert.plan(probe, languages=args['--language'],
+  planning = convert.plan(probe, languages=args['<lang>'],
       default_subtitle_language=args['--show'],
       ios_audio=bool(args['--ios-audio']),
       preserve_audio_streams=bool(args['--preserve-astreams']),
