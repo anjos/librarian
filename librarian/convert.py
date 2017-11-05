@@ -301,7 +301,7 @@ def _plan_audio(streams, languages, ios_audio, preserve_all, mapping):
   mapping[default_audio]['language'] = default_lang
 
   # if the default audio is already in AAC, just copy it
-  _copy_or_transcode(default_audio, ['ac3', 'aac'], 'aac',
+  _copy_or_transcode(default_audio, ['aac'], 'aac',
       mapping[default_audio])
 
   secondary_audio = [s for s in audio_streams if s != default_audio]
@@ -320,7 +320,7 @@ def _plan_audio(streams, languages, ios_audio, preserve_all, mapping):
         ios_stream = s #found it
         mapping[s]['index'] = 2
         mapping[s]['disposition'] = 'none' # not audible by default
-        _copy_or_transcode(s, ['ac3', 'aac'], 'aac', mapping[s])
+        _copy_or_transcode(s, ['aac'], 'aac', mapping[s])
 
     # if, at this point, ios_stream was not found, transcode from the default
     # audio stream
@@ -366,7 +366,7 @@ def _plan_audio(streams, languages, ios_audio, preserve_all, mapping):
         mapping[s]['index'] = curr_index
         mapping[s]['disposition'] = 'none' # not audible by default
         curr_index += 1
-        _copy_or_transcode(s, ['ac3', 'aac'], 'aac', mapping[s])
+        _copy_or_transcode(s, ['aac'], 'aac', mapping[s])
 
     # remove any used stream so we don't iterate over it again
     secondary_audio = [s for s in secondary_audio if s != used_stream]
