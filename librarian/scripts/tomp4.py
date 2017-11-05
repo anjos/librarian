@@ -66,12 +66,12 @@ Examples:
      italian audio/subtitle streams (if available), display french subtitles by
      default by default, create iOS audio stream:
 
-     $ %(prog)s -vv -l eng -l fre -l pt-br -s fre -i file.mkv file.mp4
+     $ %(prog)s -vv -s fre -i file.mkv file.mp4 eng fre pt-br
 
   2. Re-convert mp4 file, use (canadian) french as main language, preserve
      english audio/subtitles. No default subtitles shown:
 
-     $ %(prog)s -vv -l fr-ca -l eng file.mp4 other-file.mp4
+     $ %(prog)s -vv file.mp4 other-file.mp4 fr-ca eng
 
 """
 
