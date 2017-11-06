@@ -607,7 +607,7 @@ def test_planning_mkv_3():
   nose.tools.eq_(audio.attrib['index'], '2')
   nose.tools.eq_(convert._get_stream_language(audio), languages[0])
   nose.tools.eq_(opts['index'], 2)
-  nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['codec'], 'aac')
   nose.tools.eq_(opts['disposition'], 'none')
 
 
@@ -693,7 +693,7 @@ def test_planning_mkv_3b():
   nose.tools.eq_(audio.attrib['index'], '2')
   nose.tools.eq_(convert._get_stream_language(audio), languages[0])
   nose.tools.eq_(opts['index'], 2)
-  nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['codec'], 'aac')
   nose.tools.eq_(opts['disposition'], 'none')
 
   # the 4th stream should be an auxiliary english audio stream
@@ -703,7 +703,7 @@ def test_planning_mkv_3b():
   nose.tools.eq_(audio.attrib['index'], '3')
   nose.tools.eq_(convert._get_stream_language(audio), languages[0])
   nose.tools.eq_(opts['index'], 3)
-  nose.tools.eq_(opts['codec'], 'copy')
+  nose.tools.eq_(opts['codec'], 'aac')
   nose.tools.eq_(opts['disposition'], 'none')
 
 
