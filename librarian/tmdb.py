@@ -233,7 +233,10 @@ def _us_certification(movie):
 
   from .utils import US_CONTENT_RATINGS_APPLE
   ratings_us = [k for k in movie.countries if k['iso_3166_1'] == 'US']
-  return US_CONTENT_RATINGS_APPLE[ratings_us[0].get('certification')]
+  if ratings_us:
+    return US_CONTENT_RATINGS_APPLE[ratings_us[0].get('certification')]
+  else:
+    return US_CONTENT_RATINGS_APPLE[None]
 
 
 def _hd_tag(filename):
