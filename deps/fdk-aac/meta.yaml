@@ -11,7 +11,7 @@ source:
   sha1: {{ sha1 }}
 
 build:
-  number: 0
+  number: 1
 
 about:
   home: http://sourceforge.net/projects/opencore-amr/files/fdk-aac/
